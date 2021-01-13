@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  api-server:
+    image: wmc1415/sangsang_maru_server:1.0.4
+    restart: always
+    ports:
+      - "8000:8000"
+
