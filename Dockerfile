@@ -17,7 +17,7 @@ COPY tsconfig.json /app
 COPY tsconfig.build.json /app
 
 # env file 추후 배포/개발환경 개발시 수정 필요
-COPY ./.env /app
+COPY development.env /app
 
 RUN yarn build
 
