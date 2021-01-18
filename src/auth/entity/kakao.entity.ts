@@ -8,19 +8,17 @@ import {
 import { LoginInfo } from './loginInfo.entity';
 
 @Entity()
-export class GoogleLogin {
+export class KakaoLogin {
   @PrimaryGeneratedColumn('increment')
-  googleLoginId: number;
+  kakaoLoginId: number;
 
   @Column('text')
   oauthId: string;
 
-  @Column('text', { nullable: true })
+  @Column('text')
   accessToken: string;
 
-  @Column('text', {
-    nullable: true,
-  })
+  @Column('text', { nullable: true })
   refreshToken: string;
 
   @OneToOne((type) => LoginInfo)

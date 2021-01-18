@@ -14,17 +14,18 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateUserDto {
   @ApiProperty({
     enum: AuthProviderEnum,
+    description: 'example: local, google, naver, kakao',
   })
   @IsNotEmpty()
   @IsEnum(AuthProviderEnum)
   readonly provider: AuthProviderEnum;
 
-  @ApiModelProperty({
-    description: 'oauth 가입일 경우에만 보낸다.',
-  })
-  @IsOptional()
-  @IsNumber()
-  readonly providerLoginId: number;
+  // @ApiModelProperty({
+  //   description: 'oauth 가입일 경우에만 보낸다.',
+  // })
+  // @IsOptional()
+  // @IsNumber()
+  // readonly providerLoginId: number;
 
   @ApiModelProperty({
     example: 'user@test.com',
@@ -49,7 +50,8 @@ export class CreateUserDto {
   readonly fullName: string;
 
   @ApiModelProperty({
-    example: '01000000000',
+    example: '01028100744',
+    description: '숫자로만 이루어진 문자열',
   })
   @IsNotEmpty()
   @IsNumberString()

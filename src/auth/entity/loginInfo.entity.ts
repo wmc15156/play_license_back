@@ -10,6 +10,8 @@ import {
 import { GoogleLogin } from './googleLogin.entity';
 import { User } from '../../user/entity/user.entity';
 import { AuthProviderEnum } from '../enum/authProvider.enum';
+import { KakaoLogin } from './kakao.entity';
+import { NaverLogin } from './naver.entity';
 
 @Entity()
 export class LoginInfo {
@@ -27,6 +29,11 @@ export class LoginInfo {
 
   @OneToOne((type) => GoogleLogin)
   google;
+
+  @OneToOne((type) => KakaoLogin)
+  kakao;
+  @OneToOne((type) => NaverLogin)
+  naver;
 
   @ManyToOne((type) => User, (user) => user.loginInfos)
   user: User;
