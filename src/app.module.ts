@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { SmsModule } from './sms/sms.module';
 import { AwsModule } from './aws/aws.module';
 import { RolesModule } from './roles/roles.module';
+import { EmailModule } from './email/email.module';
 
 const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
 
@@ -25,6 +26,7 @@ const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
     SmsModule,
     AwsModule,
     RolesModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

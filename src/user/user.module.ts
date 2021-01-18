@@ -7,6 +7,8 @@ import { User } from './entity/user.entity';
 import { SmsModule } from '../sms/sms.module';
 import { RolesModule } from '../roles/roles.module';
 import { DotenvModule } from '../dotenv/dotenv.module';
+import { AuthModule } from '../auth/auth.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { DotenvModule } from '../dotenv/dotenv.module';
     SmsModule,
     RolesModule,
     DotenvModule,
+    EmailModule,
   ],
   controllers: [UserController],
   providers: [UserService],

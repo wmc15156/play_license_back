@@ -7,16 +7,30 @@ import { UserModule } from '../user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoginInfo } from './entity/loginInfo.entity';
 import { GoogleLogin } from './entity/googleLogin.entity';
+import { LocalStrategy } from './strategies/local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { KakaoLogin } from './entity/kakao.entity';
+import { KakaoStrategy } from './strategies/kakao.strategy';
+import { NaverLogin } from './entity/naver.entity';
+import { NaverStrategy } from './strategies/naver.strategy';
 
 @Module({
   imports: [
     PassportModule,
     DotenvModule,
     UserModule,
-    TypeOrmModule.forFeature([LoginInfo, GoogleLogin]),
+    TypeOrmModule.forFeature([LoginInfo, GoogleLogin, KakaoLogin, NaverLogin]),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    GoogleStrategy,
+    KakaoStrategy,
+    NaverStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

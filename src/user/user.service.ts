@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { random } from 'lodash';
 import * as moment from 'moment';
+import * as cryptoRandomString from 'crypto-random-string';
 
 import { User } from './entity/user.entity';
 import { Repository } from 'typeorm';
@@ -21,6 +22,8 @@ import { RolesService } from '../roles/roles.service';
 import { RoleEnum } from '../roles/typed/role.enum';
 import { sign } from 'jsonwebtoken';
 import { DotenvService } from '../dotenv/dotenv.service';
+import { LoginInfo } from '../auth/entity/loginInfo.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UserService {
@@ -31,9 +34,11 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(PhoneValidation)
     private readonly phoneValidationRepository: Repository<PhoneValidation>,
+
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
     private readonly smsService: SmsService,
+    private readonly emailService: EmailService,
   ) {}
 
   async hashPassword(password: string) {
@@ -89,6 +94,7 @@ export class UserService {
         deletedAt: null,
         role: userRole,
       });
+
       return created;
     } catch (err) {
       console.log(err);
@@ -160,6 +166,163 @@ export class UserService {
     } catch (err) {
       console.error(err);
       throw err;
+    }
+  }
+
+  async findOneByUserId(userId: number): Promise<User> {
+    const user = await this.userRepository.findOneOrFail({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      relations: ['role'],
+    });
+    return user;
+  }
+
+  async findOneWithPrivateInfo(email: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          email,
+        },
+        order: {
+          userId: 'DESC',
+        },
+        relations: ['role'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('USER_NOT_FOUND');
+      }
+
+      if (user.deletedAt !== null) {
+        throw new BadRequestException('DELETED_USER');
+      }
+
+      const userPasswd = await this.userRepository.findOne({
+        where: {
+          email,
+        },
+        order: {
+          userId: 'DESC',
+        },
+        select: ['userId', 'password'],
+      });
+
+      if (userPasswd.password) {
+        user.password = userPasswd.password;
+      }
+
+      return user;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async findPasswordByEmail({ email }: { email: string }) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          email,
+          deletedAt: null,
+        },
+      });
+
+      console.log(2, user);
+
+      if (!user) {
+        throw new NotFoundException('USER_NOT_FOUND');
+      }
+
+      await this.setTempPasswordAndSendTempPasswordByEmail({
+        user,
+        email,
+      });
+    } catch (err) {}
+  }
+  async setTempPasswordAndSendTempPasswordByEmail({
+    user,
+    email,
+  }: {
+    user: User;
+    email: string;
+  }) {
+    const tempPassword = cryptoRandomString({ length: 10 });
+    const hashed = await this.hashPassword(tempPassword);
+
+    await this.userRepository.save({
+      ...user,
+      password: hashed,
+    });
+
+    if (email) {
+      await this.emailService.sendEmail({
+        email,
+        title: '[PlayLicense] 회원님의 임시 비밀번호가 발급되었습니다.',
+        body: `
+        <table
+          background="#fff"
+          style="align: center; display: flex; width: 300px; text-align: center; background: #fff; margin: 32px auto;"
+        >
+        
+          <br/>
+        
+<!--          <img-->
+<!--            src=""-->
+<!--            style="display: block; margin: 0 auto; width: 200px; height: auto;"-->
+<!--            width="300px"-->
+<!--          />-->
+          
+          <br/>
+          
+          <div style="display: block; margin: 16px auto 0 auto; width: 300px; padding: 16px; border-radius: 20px; border: solid 1px #bebebe;">
+            <div style="display: block; margin: 16px 0 16px 0; font-size: 18px; font-weight: 100; width: 100%; text-align: center">
+              <span>회원님의 임시 비밀번호가 <br/>발급되었습니다.</span>
+            </div>
+            
+            <div style="display: block; margin: 32px 0 32px 0; font-size: 18px; font-weight: bold; width: 100%; text-align: center">
+              <span>${tempPassword}</span>
+            </div>
+             
+            <div style="display: block; font-size: 18px; font-weight: 100; width: 100%; text-align: center">
+              <span>임시 비밀번호로 로그인 하신 후,<br/> 비밀번호를 변경하시기 바랍니다.</span>
+            </div>
+            
+            <div style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; background-color: #6482ed; text-align: center">
+              <span style="color: white; font-size: 16px; font-weight: bold; line-height: 50px">로그인하러가기</span>
+            </div>
+          </div>
+          
+          <br/>
+          
+          <div style="display: block; width: 300px; margin: 0 auto 16px auto;">
+            <div style="display: block; width: 100%; text-align: center">
+              <span style="margin: 16px auto; display: block; font-size: 13px; color: #858585; line-height: 1.5">이 이메일은 PLAY-LISENCE 계정 및 서비스의 <br/>중요한 변경사항을 알려드리기 위해 발송되었습니다.</span>
+            </div>
+            
+            <div style="display: block; width: 100%; text-align: center">
+              <span style="margin: 4px auto; display: block; font-size: 13px; color: #858585">ⓒ PLAY-LISENCE Corp.</span>
+            </div>
+          </div>
+        </table>
+      `,
+      });
+    }
+  }
+
+  async findByEmailByIncludingDeleted(email: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          email,
+        },
+        relations: ['role'],
+      });
+      return user;
+    } catch (err) {
+      console.error(err);
     }
   }
 }

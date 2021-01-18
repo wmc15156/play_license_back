@@ -9,12 +9,14 @@ import {
   Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
 
 import { SendPhoneValidationNumberDto } from './dto/SendPhoneValidation.dto';
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
+import { FindByEmailQuery } from './queries/FindByPhone';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   private readonly logger = new Logger(UserController.name);
@@ -22,7 +24,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/phone-validation/:phone')
-  @ApiOperation({ description: '휴대폰 번호 인증 문자 발송' })
+  @ApiOperation({ summary: '휴대폰 번호 인증 문자 발송' })
   @ApiResponse({ status: 201, description: 'success' })
   async sendPhoneValidationNumber(
     @Param() params: SendPhoneValidationNumberDto,
@@ -37,7 +39,7 @@ export class UserController {
 
   @Get('/phone-validation')
   @ApiOperation({
-    summary: '휴대폰 본인 인중',
+    summary: '인증번호 유효성 검사',
     description: '회원가입 시 본인인증',
   })
   @ApiImplicitQuery({ name: 'phone', type: 'string' })
@@ -57,5 +59,14 @@ export class UserController {
       console.error(err);
       throw err;
     }
+  }
+
+  @Get('/users/forgot-password/by-email')
+  @ApiOperation({ summary: '이메일로 패스워드 찾기' })
+  async findCreatorPasswordByEmail(@Query() { email }: FindByEmailQuery) {
+    console.log(1, email);
+    await this.userService.findPasswordByEmail({
+      email,
+    });
   }
 }
