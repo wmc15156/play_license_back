@@ -30,6 +30,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: Function,
   ) {
     try {
+      console.log('google');
       const googleLogin = await this.authService.updateGoogleLogin(
         profile.id,
         accessToken,

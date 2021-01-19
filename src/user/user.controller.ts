@@ -1,12 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
   Logger,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
+  Req,
   Res,
+  UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -15,6 +20,9 @@ import { Response, Request } from 'express';
 import { SendPhoneValidationNumberDto } from './dto/SendPhoneValidation.dto';
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
 import { FindByEmailQuery } from './queries/FindByPhone';
+import { AuthGuard } from '@nestjs/passport';
+import { UpdateUserDto } from '../auth/dto/updateUser.dto';
+import { User } from './entity/user.entity';
 
 @ApiTags('user')
 @Controller('user')
@@ -30,6 +38,7 @@ export class UserController {
     @Param() params: SendPhoneValidationNumberDto,
   ) {
     try {
+      console.log('par', params);
       await this.userService.sendPhoneValidationNumber(params.phone);
       return 'OK';
     } catch (e) {
@@ -61,12 +70,29 @@ export class UserController {
     }
   }
 
-  @Get('/users/forgot-password/by-email')
+  @Get('/forgot-password/by-email')
   @ApiOperation({ summary: '이메일로 패스워드 찾기' })
   async findCreatorPasswordByEmail(@Query() { email }: FindByEmailQuery) {
-    console.log(1, email);
+    console.log('here');
     await this.userService.findPasswordByEmail({
       email,
     });
+  }
+
+  @Patch('/update')
+  @ApiOperation({ summary: '유저 정보수정, 수정이 필요한 정보만 요청 ' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'token is invalid' })
+  @ApiResponse({ status: 404, description: 'no user' })
+  @UseGuards(AuthGuard('jwt'))
+  async updateUser(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+  ) {
+    const user = req.user as User;
+
+    const updatedUser = await this.userService.updateUser(user, updateUserDto);
+    return res.json({ success: true, data: updatedUser });
   }
 }

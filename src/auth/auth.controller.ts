@@ -1,8 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
+  Param,
+  Patch,
   Post,
   Req,
   Res,
@@ -24,6 +27,8 @@ import { AuthProviderEnum } from './enum/authProvider.enum';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { DotenvService } from '../dotenv/dotenv.service';
 import { KakaoAuthGuard } from './kakao-auth-guard';
+import { UpdateUserDto } from './dto/updateUser.dto';
+import { SendEmailValidationDto } from './dto/SendEmailValidation.dto';
 
 @ApiTags('auth(인증)')
 @Controller('auth')
@@ -48,14 +53,12 @@ export class AuthController {
     let oauthId: string | null = null;
     if (createUserDto.provider !== AuthProviderEnum.LOCAL) {
       const decoded = jwt.verify(
-        req.signedCookies['oauthtoken'],
+        req.signedCookies['authtoken'],
         this.dotenvConfigService.get('JWT_SECRET_KEY'),
       );
 
       oauthId = decoded['oauthId'];
     }
-
-    console.log(createUserDto);
 
     const createdUser = await this.authService.signUp(createUserDto, oauthId);
 
@@ -124,6 +127,60 @@ export class AuthController {
     return await this.handleOAuthCallback(req, res);
   }
 
+  @Get('/me')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '로그인 한 유저정보' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'token is invalid' })
+  @ApiResponse({ status: 404, description: 'user not found' })
+  async getMe(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as User;
+    const userInfo = await this.authService.findUserInformation(user);
+    const {
+      provider,
+      user: { email, fullName, phone },
+    } = userInfo;
+
+    return res.json({ email, fullName, phone, provider });
+  }
+
+  @Post('/logout')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '사용자 로그아웃' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized user' })
+  async logout(@Res() res: Response) {
+    res.clearCookie('authtoken');
+    return res.json({ success: true });
+  }
+
+  @Delete('/unregister')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '회원탈퇴' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized user' })
+  @ApiResponse({ status: 404, description: 'no user' })
+  async unregister(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as User;
+
+    await this.userService.unregister(user);
+    res.clearCookie('authtoken');
+    return res.json({ success: true });
+  }
+
+  @Get('/email/duplicate/:email')
+  @ApiOperation({ summary: '이메일 중복체크' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 409, description: 'duplicated email' })
+  async emailDuplicateCheck(
+    @Param() params: SendEmailValidationDto,
+    @Res() res: Response,
+  ) {
+    const { email } = params;
+    await this.userService.emailDuplicateCheck(email);
+    return res.json({ success: true });
+  }
+
   setUserTokenToCookie(res: Response, token: string) {
     res.cookie('authtoken', token, {
       signed: true,
@@ -133,7 +190,7 @@ export class AuthController {
   }
 
   setOAuthTokenToCookie(res: Response, token: string) {
-    res.cookie('oauthtoken', token, {
+    res.cookie('authtoken', token, {
       signed: true,
       maxAge: 60 * 60 * 24,
       httpOnly: true,
@@ -142,8 +199,6 @@ export class AuthController {
 
   async handleOAuthCallback(req: Request, res: Response) {
     const user = req.user as any;
-
-    // this.logger.debug('user:' + JSON.stringify(user, null, 2));
 
     // User with the email has been already deleted.
     if (user.isDeleted) {
@@ -172,7 +227,6 @@ export class AuthController {
 
     // user exists
     if (user.userId) {
-      console.log(2222);
       const jwt = await this.authService.createUserToken(
         user.userId,
         user.provider,
@@ -184,7 +238,6 @@ export class AuthController {
 
     // oauth is validated but no user
     if (user.oauthId) {
-      console.log(111);
       const oauthInfoToken = await this.authService.createOAuthInfoToken({
         oauthId: user.oauthId,
         provider: user.provider,

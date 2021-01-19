@@ -14,13 +14,21 @@ import { KakaoLogin } from './entity/kakao.entity';
 import { KakaoStrategy } from './strategies/kakao.strategy';
 import { NaverLogin } from './entity/naver.entity';
 import { NaverStrategy } from './strategies/naver.strategy';
+import { JwtOauthStrategy } from './strategies/jwtOauth.strategy';
+import { User } from '../user/entity/user.entity';
 
 @Module({
   imports: [
     PassportModule,
     DotenvModule,
     UserModule,
-    TypeOrmModule.forFeature([LoginInfo, GoogleLogin, KakaoLogin, NaverLogin]),
+    TypeOrmModule.forFeature([
+      LoginInfo,
+      GoogleLogin,
+      KakaoLogin,
+      NaverLogin,
+      User,
+    ]),
   ],
   controllers: [AuthController],
   providers: [
@@ -30,6 +38,7 @@ import { NaverStrategy } from './strategies/naver.strategy';
     GoogleStrategy,
     KakaoStrategy,
     NaverStrategy,
+    JwtOauthStrategy,
   ],
   exports: [AuthService],
 })

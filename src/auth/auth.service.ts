@@ -35,6 +35,8 @@ export class AuthService {
     private readonly kakaoLoginRepository: Repository<KakaoLogin>,
     @InjectRepository(NaverLogin)
     private readonly naverLoginRepository: Repository<NaverLogin>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async signUp(createUserDto: CreateUserDto, oauthId: string) {
@@ -60,6 +62,7 @@ export class AuthService {
 
         switch (provider) {
           case AuthProviderEnum.GOOGLE:
+            console.log(oauthId, 'oauthId');
             const googleLogin = await this.googleLoginRepository.findOne({
               where: {
                 oauthId,
@@ -313,5 +316,27 @@ export class AuthService {
     );
 
     return jwt;
+  }
+
+  async findUserInformation(user: User) {
+    try {
+      const { userId } = user;
+      const oneUser = await this.userRepository.findOne({
+        where: { userId, deletedAt: null },
+      });
+      if (oneUser) {
+        const loginInfo = await this.loginInfoRepository.findOne({
+          where: { user: userId },
+          relations: ['user'],
+        });
+        if (loginInfo) {
+          return loginInfo;
+        }
+      } else {
+        throw new NotFoundException('NO_USER');
+      }
+    } catch (err) {
+      throw err;
+    }
   }
 }

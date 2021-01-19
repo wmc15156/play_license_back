@@ -39,3 +39,5 @@ lerna-debug.log*
 # pem
 *.pem
 sangsang-maru.pem
+
+/lambda/node_modules

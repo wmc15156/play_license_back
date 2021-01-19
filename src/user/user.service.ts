@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -24,6 +25,7 @@ import { sign } from 'jsonwebtoken';
 import { DotenvService } from '../dotenv/dotenv.service';
 import { LoginInfo } from '../auth/entity/loginInfo.entity';
 import { EmailService } from '../email/email.service';
+import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -137,6 +139,7 @@ export class UserService {
         `안녕하세요. 플레이 라이센스 본인인증 번호는 [${randomValidationNumber}] 입니다. `,
       );
     } catch (err) {
+      throw err;
       console.error(err);
     }
   }
@@ -230,8 +233,6 @@ export class UserService {
         },
       });
 
-      console.log(2, user);
-
       if (!user) {
         throw new NotFoundException('USER_NOT_FOUND');
       }
@@ -240,7 +241,9 @@ export class UserService {
         user,
         email,
       });
-    } catch (err) {}
+    } catch (err) {
+      throw err;
+    }
   }
   async setTempPasswordAndSendTempPasswordByEmail({
     user,
@@ -269,11 +272,11 @@ export class UserService {
         
           <br/>
         
-<!--          <img-->
-<!--            src=""-->
-<!--            style="display: block; margin: 0 auto; width: 200px; height: auto;"-->
-<!--            width="300px"-->
-<!--          />-->
+          <img
+            src="https://user-images.githubusercontent.com/60249156/105002072-116d1600-5a74-11eb-90fd-2028db9ad89b.png"
+            style="display: block; margin: 0 auto; width: 200px; height: auto;"
+            width="300px"
+          />
           
           <br/>
           
@@ -290,7 +293,8 @@ export class UserService {
               <span>임시 비밀번호로 로그인 하신 후,<br/> 비밀번호를 변경하시기 바랍니다.</span>
             </div>
             
-            <div style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; background-color: #6482ed; text-align: center">
+            <div class="test" style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; 
+                  background-color: #f783ac; text-align: center">
               <span style="color: white; font-size: 16px; font-weight: bold; line-height: 50px">로그인하러가기</span>
             </div>
           </div>
@@ -323,6 +327,63 @@ export class UserService {
       return user;
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async unregister(user: User): Promise<void> {
+    const { userId } = user;
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { userId, deletedAt: null },
+      });
+      if (findOneUser) {
+        findOneUser.deletedAt = new Date();
+        await this.userRepository.save(findOneUser);
+      } else {
+        throw new NotFoundException('NO_USER');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+    const { userId } = user;
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { userId, deletedAt: null },
+      });
+      if (findOneUser) {
+        if (updateUserDto.phone) {
+          findOneUser.phone = updateUserDto.phone;
+        }
+        if (updateUserDto.password) {
+          const hashedPassword = await this.hashPassword(
+            updateUserDto.password,
+          );
+          findOneUser.password = hashedPassword;
+        }
+        return await this.userRepository.save(findOneUser);
+      }
+
+      throw new NotFoundException('NO_USER');
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async emailDuplicateCheck(email: string): Promise<void> {
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { email },
+      });
+
+      if (findOneUser) {
+        throw new ConflictException('EMAIL_DUPLICATED');
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

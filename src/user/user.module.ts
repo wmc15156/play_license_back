@@ -9,6 +9,7 @@ import { RolesModule } from '../roles/roles.module';
 import { DotenvModule } from '../dotenv/dotenv.module';
 import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
+import { LoginInfo } from '../auth/entity/loginInfo.entity';
 
 @Module({
   imports: [
