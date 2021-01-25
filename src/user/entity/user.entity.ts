@@ -11,7 +11,8 @@ import {
 } from 'typeorm';
 import { LoginInfo } from '../../auth/entity/loginInfo.entity';
 import { Role } from '../../roles/entity/role.entity';
-import { ProductInfoEntity } from '../../product/entity/ProductInfo.entity';
+import { ProviderProductInfo } from '../../product/entity/ProductInfo.entity';
+import { BuyerProductInfo } from '../../product/entity/BuyerProductInfo.entity';
 
 @Entity()
 export class User {
@@ -56,6 +57,9 @@ export class User {
   @ManyToOne((type) => Role, (role) => role.users)
   role: Role;
 
-  @ManyToMany((type) => ProductInfoEntity, (product) => product.users)
-  products: ProductInfoEntity[];
+  @ManyToMany((type) => ProviderProductInfo, (product) => product.users)
+  products: ProviderProductInfo[];
+
+  @OneToMany((type) => BuyerProductInfo, (product) => product.user)
+  buyerProductInfo: BuyerProductInfo[];
 }

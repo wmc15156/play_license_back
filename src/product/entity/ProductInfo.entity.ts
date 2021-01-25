@@ -17,7 +17,7 @@ export enum ProgressEnum {
 }
 
 @Entity()
-export class ProductInfoEntity {
+export class ProviderProductInfo {
   @PrimaryGeneratedColumn('increment')
   productId: number;
 
@@ -51,7 +51,7 @@ export class ProductInfoEntity {
   category: string;
 
   @Column({ type: 'json' })
-  creativeStaff: CreativeStaff;
+  creativeStaff: object;
 
   @Column()
   genre: string;
@@ -66,11 +66,11 @@ export class ProductInfoEntity {
   sizeOfPerformance: string;
 
   @Column({ type: 'json' })
-  castMembers: CastMembers;
+  castMembers: object;
 
   //긱색허용 여부
-  @Column({ type: 'boolean' })
-  adaptedStatus: boolean;
+  @Column()
+  changeScenario: string;
 
   @Column()
   performanceVideo: string;
@@ -111,10 +111,10 @@ export class ProductInfoEntity {
   createdAt: Date | string;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date | string;
 
   @DeleteDateColumn()
-  deletedAt: Date;
+  deletedAt: Date | string;
 
   @ManyToMany((type) => User, (user) => user.products)
   @JoinTable({ name: 'user_product_cart' })
