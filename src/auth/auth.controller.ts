@@ -4,8 +4,6 @@ import {
   Delete,
   Get,
   Logger,
-  Param,
-  Patch,
   Post,
   Req,
   Res,
@@ -27,8 +25,15 @@ import { AuthProviderEnum } from './enum/authProvider.enum';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { DotenvService } from '../dotenv/dotenv.service';
 import { KakaoAuthGuard } from './kakao-auth-guard';
-import { UpdateUserDto } from './dto/updateUser.dto';
-import { SendEmailValidationDto } from './dto/SendEmailValidation.dto';
+import { RoleEnum } from '../roles/typed/role.enum';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
+import { CreateProviderDto } from './dto/createProvider.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ProviderAccount } from './entity/providerAccount.entity';
+import { Repository } from 'typeorm';
+import { DuplicateEmailDto } from './dto/duplicateEmail.dto';
+import { RolesEnum } from './enum/Roles.enum';
 
 @ApiTags('auth(인증)')
 @Controller('auth')
@@ -39,36 +44,52 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly dotenvConfigService: DotenvService,
+
+    @InjectRepository(ProviderAccount)
+    private readonly providerAccountRepository: Repository<ProviderAccount>,
   ) {}
 
   @Post('/signup')
   @ApiOperation({ summary: '회원 가입' })
   @ApiResponse({ status: 201, description: 'success' })
-  @ApiResponse({ status: 401, description: 'duplicated email' })
+  @ApiResponse({ status: 409, description: 'duplicated email' })
   async signUp(
     @Body(ValidationPipe) createUserDto: CreateUserDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     let oauthId: string | null = null;
-    if (createUserDto.provider !== AuthProviderEnum.LOCAL) {
+    if (req.signedCookies['Oauthtoken']) {
       const decoded = jwt.verify(
-        req.signedCookies['authtoken'],
+        req.signedCookies['Oauthtoken'],
         this.dotenvConfigService.get('JWT_SECRET_KEY'),
       );
 
+      if (decoded) {
+        switch (decoded['provider']) {
+          case 'google':
+            createUserDto.provider = AuthProviderEnum.GOOGLE;
+            break;
+          case 'naver':
+            createUserDto.provider = AuthProviderEnum.NAVER;
+            break;
+          case 'kakao':
+            createUserDto.provider = AuthProviderEnum.KAKAO;
+            break;
+        }
+      }
       oauthId = decoded['oauthId'];
     }
 
     const createdUser = await this.authService.signUp(createUserDto, oauthId);
 
-    const jwtToken = await this.authService.createUserToken(
-      createdUser.userId,
-      createUserDto.provider,
-    );
-
-    this.setUserTokenToCookie(res, jwtToken);
-    return res.json({ success: true });
+    // const jwtToken = await this.authService.createUserToken(
+    //   createdUser.userId,
+    //   createUserDto.provider,
+    // );
+    //
+    // this.setUserTokenToCookie(res, jwtToken);
+    return res.status(201).json({ success: true });
   }
 
   @Post('login')
@@ -86,9 +107,14 @@ export class AuthController {
     const jwt = await this.authService.createUserToken(
       user.userId,
       AuthProviderEnum.LOCAL,
+      user.role.role,
     );
+
+    const { createdAt, updatedAt, deletedAt, role, ...result } = user;
+    result['role'] = user.role.role;
+
     this.setUserTokenToCookie(res, jwt);
-    return res.json({ success: 'true' });
+    return res.status(201).json({ success: 'true', userInfo: result });
   }
 
   @Get('/google')
@@ -136,12 +162,13 @@ export class AuthController {
   async getMe(@Req() req: Request, @Res() res: Response) {
     const user = req.user as User;
     const userInfo = await this.authService.findUserInformation(user);
-    const {
-      provider,
-      user: { email, fullName, phone },
-    } = userInfo;
-
-    return res.json({ email, fullName, phone, provider });
+    if (userInfo['user']) {
+      const { email, fullName, phone } = userInfo['user'];
+      const provider = userInfo['provider'];
+      return res.json({ email, fullName, phone, provider });
+    } else {
+      return res.status(200).json(userInfo);
+    }
   }
 
   @Post('/logout')
@@ -151,7 +178,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'unauthorized user' })
   async logout(@Res() res: Response) {
     res.clearCookie('authtoken');
-    return res.json({ success: true });
+    return res.status(200).json({ success: true });
   }
 
   @Delete('/unregister')
@@ -165,35 +192,69 @@ export class AuthController {
 
     await this.userService.unregister(user);
     res.clearCookie('authtoken');
-    return res.json({ success: true });
+    return res.status(200).json({ success: true });
   }
 
-  @Get('/email/duplicate/:email')
+  @Post('/email/duplicate')
   @ApiOperation({ summary: '이메일 중복체크' })
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 409, description: 'duplicated email' })
   async emailDuplicateCheck(
-    @Param() params: SendEmailValidationDto,
+    @Body(ValidationPipe) duplicateEmailDto: DuplicateEmailDto,
     @Res() res: Response,
   ) {
-    const { email } = params;
-    await this.userService.emailDuplicateCheck(email);
-    return res.json({ success: true });
+    const { email, provider } = duplicateEmailDto;
+
+    await this.userService.emailDuplicateCheck(email, provider);
+
+    return res.status(200).json({ success: true });
   }
 
+  @Post('/give/authority')
+  @ApiOperation({ summary: 'provider 계정 등록' })
+  @Roles(RoleEnum.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiResponse({ status: 201, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized' })
+  @ApiResponse({ status: 409, description: 'duplicated email' })
+  async giveAuthority(
+    @Body(ValidationPipe) createProviderDto: CreateProviderDto,
+  ): Promise<ProviderAccount> {
+    const { email, fullName, company, password } = createProviderDto;
+    return await this.authService.createProvider(
+      email,
+      fullName,
+      company,
+      password,
+    );
+  }
+
+  @Post('/signup/admin')
+  @ApiOperation({ summary: 'admin 계정생성,test용' })
+  async adminSignUp(
+    @Body(ValidationPipe) createUserDto: CreateUserDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const { email, password } = createUserDto;
+    await this.authService.createAdmin(email, password);
+    res.send('ok');
+  }
   setUserTokenToCookie(res: Response, token: string) {
     res.cookie('authtoken', token, {
       signed: true,
       maxAge: 60 * 60 * 24,
       httpOnly: true,
+      // secure: true,
     });
   }
 
   setOAuthTokenToCookie(res: Response, token: string) {
-    res.cookie('authtoken', token, {
+    res.cookie('Oauthtoken', token, {
       signed: true,
       maxAge: 60 * 60 * 24,
       httpOnly: true,
+      // secure: true,
     });
   }
 
@@ -215,13 +276,13 @@ export class AuthController {
 
     if (user.alreadySignedUp) {
       return res.send(
-        `<script>alert("이미 다른 방식으로 가입한 이메일입니다. 해당 방법으로 로그인해주세요.");window.location.replace("http://localhost:3000/login");</script>`,
+        `<script>alert("이미 다른 방식으로 가입한 이메일입니다. 해당 방법으로 로그인해주세요.");window.location.replace("http://localhost:3000/register");</script>`,
       );
     }
 
     if (user.noUser) {
       return res.send(
-        `<script>alert("해당 이메일은 가입되지 않은 이메일입니다. 회원가입을 해주세요");window.location.replace("http://localhost:3000/login");</script>`,
+        `<script>alert("해당 이메일은 가입되지 않은 이메일입니다. 회원가입을 해주세요");window.location.replace("http://localhost:3000/register");</script>`,
       );
     }
 
@@ -230,10 +291,11 @@ export class AuthController {
       const jwt = await this.authService.createUserToken(
         user.userId,
         user.provider,
+        user.role.role,
       );
 
       this.setUserTokenToCookie(res, jwt);
-      return res.redirect('http://localhost:3000/register');
+      return res.redirect('http://localhost:3000/');
     }
 
     // oauth is validated but no user
@@ -244,7 +306,7 @@ export class AuthController {
       });
 
       this.setOAuthTokenToCookie(res, oauthInfoToken);
-      return res.redirect('http://localhost:3000/register');
+      return res.redirect(`http://localhost:3000/register?email=${user.email}`);
     }
   }
 }

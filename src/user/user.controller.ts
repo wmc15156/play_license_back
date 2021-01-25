@@ -38,7 +38,6 @@ export class UserController {
     @Param() params: SendPhoneValidationNumberDto,
   ) {
     try {
-      console.log('par', params);
       await this.userService.sendPhoneValidationNumber(params.phone);
       return 'OK';
     } catch (e) {
@@ -73,7 +72,6 @@ export class UserController {
   @Get('/forgot-password/by-email')
   @ApiOperation({ summary: '이메일로 패스워드 찾기' })
   async findCreatorPasswordByEmail(@Query() { email }: FindByEmailQuery) {
-    console.log('here');
     await this.userService.findPasswordByEmail({
       email,
     });
@@ -93,6 +91,6 @@ export class UserController {
     const user = req.user as User;
 
     const updatedUser = await this.userService.updateUser(user, updateUserDto);
-    return res.json({ success: true, data: updatedUser });
+    return res.status(200).json({ success: true, data: updatedUser });
   }
 }

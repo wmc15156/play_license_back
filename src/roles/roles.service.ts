@@ -31,6 +31,11 @@ export class RolesService {
         });
 
         await this.roleRepository.save({
+          role: RoleEnum.PROVIDER,
+          description: 'provider user',
+        });
+
+        await this.roleRepository.save({
           role: RoleEnum.USER,
           description: 'general user',
         });

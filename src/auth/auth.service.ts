@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -18,6 +19,8 @@ import { LoginInfo } from './entity/loginInfo.entity';
 import { CreateUserDto } from '../user/dto/CreateUser.dto';
 import { KakaoLogin } from './entity/kakao.entity';
 import { NaverLogin } from './entity/naver.entity';
+import { ProviderAccount } from './entity/providerAccount.entity';
+import { RoleEnum } from '../roles/typed/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -37,9 +40,11 @@ export class AuthService {
     private readonly naverLoginRepository: Repository<NaverLogin>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(ProviderAccount)
+    private readonly providerRepository: Repository<ProviderAccount>,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto, oauthId: string) {
+  async signUp(createUserDto: CreateUserDto, oauthId?: string) {
     const { provider } = createUserDto;
     try {
       if (provider !== AuthProviderEnum.LOCAL && !provider) {
@@ -99,8 +104,17 @@ export class AuthService {
     }
   }
 
-  async createUserToken(userId: number, provider: AuthProviderEnum) {
-    const payload = { userId, provider };
+  async createUserToken(
+    userId: number,
+    provider: AuthProviderEnum,
+    role?: RoleEnum,
+  ) {
+    let payload = null;
+    if (role) {
+      payload = { userId, provider, role };
+    } else {
+      payload = { userId, provider };
+    }
 
     const jwt: string = sign(
       payload,
@@ -228,7 +242,6 @@ export class AuthService {
     done: Function,
   ): Promise<User | null> {
     let loginInfo: LoginInfo | null = null;
-
     switch (provider) {
       case AuthProviderEnum.GOOGLE:
         const googleLogin = await this.googleLoginRepository.findOne({
@@ -247,7 +260,9 @@ export class AuthService {
           where: {
             oauthId,
           },
+          relations: ['loginInfo'],
         });
+
         if (kakaoLogin && kakaoLogin.loginInfo) {
           loginInfo = kakaoLogin.loginInfo;
         }
@@ -257,6 +272,7 @@ export class AuthService {
           where: {
             oauthId,
           },
+          relations: ['loginInfo'],
         });
         if (naverLogin && naverLogin.loginInfo) {
           loginInfo = naverLogin.loginInfo;
@@ -323,19 +339,73 @@ export class AuthService {
       const { userId } = user;
       const oneUser = await this.userRepository.findOne({
         where: { userId, deletedAt: null },
+        relations: ['role'],
       });
+      console.log(oneUser.role.role);
       if (oneUser) {
-        const loginInfo = await this.loginInfoRepository.findOne({
-          where: { user: userId },
-          relations: ['user'],
-        });
-        if (loginInfo) {
-          return loginInfo;
+        if (oneUser.role.role === RoleEnum.USER) {
+          const loginInfo = await this.loginInfoRepository.findOne({
+            where: { user: userId },
+            relations: ['user'],
+          });
+          if (loginInfo) {
+            return loginInfo;
+          }
+        } else {
+          return oneUser;
         }
       } else {
         throw new NotFoundException('NO_USER');
       }
     } catch (err) {
+      throw err;
+    }
+  }
+
+  async createProvider(
+    email: string,
+    fullName: string,
+    company: string,
+    password: string,
+  ) {
+    try {
+      const findProvider = await this.providerRepository.findOne({
+        email,
+      });
+
+      const findUser = await this.userRepository.findOne({
+        email,
+      });
+
+      if (findProvider || findUser) {
+        throw new ConflictException('DUPLICATED_EMAIL');
+      }
+      const hashedPassword = this.userService.hashPassword(password);
+
+      return await this.providerRepository.save({
+        email,
+        fullName,
+        company,
+        password: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async createAdmin(email: string, password: string): Promise<User> {
+    try {
+      const createAdminUser = await this.userService.createAdmin(
+        email,
+        password,
+      );
+      return createAdminUser;
+    } catch (err) {
+      console.error(err);
       throw err;
     }
   }

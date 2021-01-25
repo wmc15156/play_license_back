@@ -31,10 +31,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
         accessToken,
         refreshToken,
       );
-      console.log(typeof profile, JSON.stringify(profile));
-      if (profile._json && profile._json.kakao_account.email) {
-        console.log(profile._json.kakao_account.email);
-      }
+
       this.logger.log(`${profile}, this is kakao Profile test`);
       const email = profile['_json'].kakao_account.email || '';
 
@@ -44,7 +41,6 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
         email,
         done,
       );
-
       if (user) {
         done(null, user);
         return;

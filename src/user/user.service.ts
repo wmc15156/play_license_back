@@ -21,11 +21,11 @@ import { AuthProviderEnum } from '../auth/enum/authProvider.enum';
 import { SmsService } from '../sms/sms.service';
 import { RolesService } from '../roles/roles.service';
 import { RoleEnum } from '../roles/typed/role.enum';
-import { sign } from 'jsonwebtoken';
 import { DotenvService } from '../dotenv/dotenv.service';
-import { LoginInfo } from '../auth/entity/loginInfo.entity';
 import { EmailService } from '../email/email.service';
 import { UpdateUserDto } from '../auth/dto/updateUser.dto';
+import { RolesEnum } from '../auth/enum/Roles.enum';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 @Injectable()
 export class UserService {
@@ -36,6 +36,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(PhoneValidation)
     private readonly phoneValidationRepository: Repository<PhoneValidation>,
+    @InjectRepository(ProviderAccount)
+    private readonly providerAccountRepository: Repository<ProviderAccount>,
 
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
@@ -48,8 +50,12 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
+    let userRole = null;
     try {
       // email 중복체크
+      if (!createUserDto.role) {
+        throw new BadRequestException('NO_ROLE_PARAMETER');
+      }
       const isEmailDuplicated = await this.userRepository.findOne({
         where: {
           email: createUserDto.email,
@@ -58,7 +64,7 @@ export class UserService {
       });
 
       if (isEmailDuplicated) {
-        throw new BadRequestException('EMAIL_DUPLICATED');
+        throw new ConflictException('EMAIL_DUPLICATED');
       }
 
       let hashedPassword: string | null = null;
@@ -73,7 +79,11 @@ export class UserService {
       hashedPassword = await this.hashPassword(createUserDto.password);
 
       const userInfo = createUserDto;
-      const userRole = await this.roleService.getRole(RoleEnum.USER);
+      if (createUserDto.role === RolesEnum.USER) {
+        userRole = await this.roleService.getRole(RoleEnum.USER);
+      } else if (createUserDto.role === RolesEnum.PROVIDER) {
+        userRole = await this.roleService.getRole(RoleEnum.PROVIDER);
+      }
 
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: {
@@ -373,17 +383,51 @@ export class UserService {
     }
   }
 
-  async emailDuplicateCheck(email: string): Promise<void> {
+  async emailDuplicateCheck(email: string, provider: RolesEnum): Promise<void> {
+    let findOneProvider = null;
     try {
       const findOneUser = await this.userRepository.findOne({
         where: { email },
       });
 
-      if (findOneUser) {
+      if (provider === RolesEnum.PROVIDER) {
+        findOneProvider = await this.providerAccountRepository.findOne({
+          email,
+        });
+      }
+
+      if (findOneUser || findOneProvider) {
         throw new ConflictException('EMAIL_DUPLICATED');
       }
     } catch (err) {
       throw err;
     }
+  }
+
+  async createAdmin(email: string, password: string): Promise<User> {
+    const hashedPassword = await this.hashPassword(password);
+    try {
+      const findAdmin = await this.userRepository.findOne({
+        email,
+        deletedAt: null,
+      });
+
+      if (findAdmin) {
+        throw new ConflictException('DUPLICATED_EMAIL');
+      }
+      const adminRole = await this.roleService.getRole(RoleEnum.ADMIN);
+      const createAdmin = await this.userRepository.save({
+        email,
+        password: hashedPassword,
+        fullName: 'admin',
+        phone: 'admin',
+        role: adminRole,
+        createdAt: new Date(),
+        deletedAt: null,
+        updatedAt: new Date(),
+      });
+
+      return createAdmin;
+    } catch (err) {}
   }
 }

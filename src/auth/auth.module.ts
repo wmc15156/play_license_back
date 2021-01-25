@@ -16,6 +16,7 @@ import { NaverLogin } from './entity/naver.entity';
 import { NaverStrategy } from './strategies/naver.strategy';
 import { JwtOauthStrategy } from './strategies/jwtOauth.strategy';
 import { User } from '../user/entity/user.entity';
+import { ProviderAccount } from './entity/providerAccount.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { User } from '../user/entity/user.entity';
       KakaoLogin,
       NaverLogin,
       User,
+      ProviderAccount,
     ]),
   ],
   controllers: [AuthController],
