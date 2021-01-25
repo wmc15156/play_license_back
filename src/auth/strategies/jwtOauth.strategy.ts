@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { Request } from 'express';
@@ -7,21 +7,19 @@ import { DotenvService } from '../../dotenv/dotenv.service';
 import { UserService } from '../../user/user.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  private readonly logger = new Logger(JwtStrategy.name);
-
+export class JwtOauthStrategy extends PassportStrategy(Strategy, 'jwtOauth') {
   constructor(
-    private readonly dotenvConfigService: DotenvService,
     private readonly userService: UserService,
+    private readonly dotenvConfigService: DotenvService,
   ) {
     super({
       secretOrKey: dotenvConfigService.get('JWT_SECRET_KEY'),
       jwtFromRequest: (req: Request) => {
+        console.log('here', req.signedCookies);
         let token = null;
-        if (req && req.signedCookies) {
-          token = req.signedCookies['authtoken'];
+        if (req && req.signedCookies['authtoken']) {
+          return token;
         }
-        return token;
       },
     });
   }
@@ -31,12 +29,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       const { userId } = payload;
       const user = await this.userService.findOneByUserId(userId);
 
-      this.logger.debug(
-        'usertoken validated: ' + JSON.stringify(user, null, 2),
-      );
       done(null, user);
-    } catch (e) {
-      done(e.message, false);
+    } catch (err) {
+      done(err.message, false);
     }
   }
 }

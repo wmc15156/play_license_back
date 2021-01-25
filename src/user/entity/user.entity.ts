@@ -2,12 +2,16 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LoginInfo } from '../../auth/entity/loginInfo.entity';
 import { Role } from '../../roles/entity/role.entity';
+import { ProductInfoEntity } from '../../product/entity/ProductInfo.entity';
 
 @Entity()
 export class User {
@@ -51,4 +55,7 @@ export class User {
 
   @ManyToOne((type) => Role, (role) => role.users)
   role: Role;
+
+  @ManyToMany((type) => ProductInfoEntity, (product) => product.users)
+  products: ProductInfoEntity[];
 }

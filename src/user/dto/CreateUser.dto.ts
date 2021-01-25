@@ -10,6 +10,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { RolesEnum } from '../../auth/enum/Roles.enum';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -17,8 +18,9 @@ export class CreateUserDto {
     description: 'example: local, google, naver, kakao',
   })
   @IsNotEmpty()
+  @IsOptional()
   @IsEnum(AuthProviderEnum)
-  readonly provider: AuthProviderEnum;
+  provider: AuthProviderEnum;
 
   // @ApiModelProperty({
   //   description: 'oauth 가입일 경우에만 보낸다.',
@@ -56,4 +58,17 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsNumberString()
   readonly phone: string;
+
+  @ApiModelProperty({
+    example: 'provider or user',
+  })
+  @IsNotEmpty()
+  @IsString()
+  role: RolesEnum;
+
+  @ApiModelProperty({
+    description: '관리자 확인, test용',
+  })
+  @IsOptional()
+  admin: Boolean;
 }
