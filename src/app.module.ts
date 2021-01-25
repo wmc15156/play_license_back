@@ -11,6 +11,9 @@ import { SmsModule } from './sms/sms.module';
 import { AwsModule } from './aws/aws.module';
 import { RolesModule } from './roles/roles.module';
 import { EmailModule } from './email/email.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
+import { ImageModule } from './image/image.module';
+import { ProductModule } from './product/product.module';
 
 const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
 
@@ -27,6 +30,9 @@ const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
     AwsModule,
     RolesModule,
     EmailModule,
+    FileUploadModule,
+    ImageModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

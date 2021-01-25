@@ -9,10 +9,11 @@ import { RolesModule } from '../roles/roles.module';
 import { DotenvModule } from '../dotenv/dotenv.module';
 import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PhoneValidation]),
+    TypeOrmModule.forFeature([User, PhoneValidation, ProviderAccount]),
     SmsModule,
     RolesModule,
     DotenvModule,

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -20,10 +21,11 @@ import { AuthProviderEnum } from '../auth/enum/authProvider.enum';
 import { SmsService } from '../sms/sms.service';
 import { RolesService } from '../roles/roles.service';
 import { RoleEnum } from '../roles/typed/role.enum';
-import { sign } from 'jsonwebtoken';
 import { DotenvService } from '../dotenv/dotenv.service';
-import { LoginInfo } from '../auth/entity/loginInfo.entity';
 import { EmailService } from '../email/email.service';
+import { UpdateUserDto } from '../auth/dto/updateUser.dto';
+import { RolesEnum } from '../auth/enum/Roles.enum';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 @Injectable()
 export class UserService {
@@ -34,6 +36,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(PhoneValidation)
     private readonly phoneValidationRepository: Repository<PhoneValidation>,
+    @InjectRepository(ProviderAccount)
+    private readonly providerAccountRepository: Repository<ProviderAccount>,
 
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
@@ -46,8 +50,12 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
+    let userRole = null;
     try {
       // email 중복체크
+      if (!createUserDto.role) {
+        throw new BadRequestException('NO_ROLE_PARAMETER');
+      }
       const isEmailDuplicated = await this.userRepository.findOne({
         where: {
           email: createUserDto.email,
@@ -56,7 +64,7 @@ export class UserService {
       });
 
       if (isEmailDuplicated) {
-        throw new BadRequestException('EMAIL_DUPLICATED');
+        throw new ConflictException('EMAIL_DUPLICATED');
       }
 
       let hashedPassword: string | null = null;
@@ -71,7 +79,11 @@ export class UserService {
       hashedPassword = await this.hashPassword(createUserDto.password);
 
       const userInfo = createUserDto;
-      const userRole = await this.roleService.getRole(RoleEnum.USER);
+      if (createUserDto.role === RolesEnum.USER) {
+        userRole = await this.roleService.getRole(RoleEnum.USER);
+      } else if (createUserDto.role === RolesEnum.PROVIDER) {
+        userRole = await this.roleService.getRole(RoleEnum.PROVIDER);
+      }
 
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: {
@@ -137,6 +149,7 @@ export class UserService {
         `안녕하세요. 플레이 라이센스 본인인증 번호는 [${randomValidationNumber}] 입니다. `,
       );
     } catch (err) {
+      throw err;
       console.error(err);
     }
   }
@@ -230,8 +243,6 @@ export class UserService {
         },
       });
 
-      console.log(2, user);
-
       if (!user) {
         throw new NotFoundException('USER_NOT_FOUND');
       }
@@ -240,7 +251,9 @@ export class UserService {
         user,
         email,
       });
-    } catch (err) {}
+    } catch (err) {
+      throw err;
+    }
   }
   async setTempPasswordAndSendTempPasswordByEmail({
     user,
@@ -269,11 +282,11 @@ export class UserService {
         
           <br/>
         
-<!--          <img-->
-<!--            src=""-->
-<!--            style="display: block; margin: 0 auto; width: 200px; height: auto;"-->
-<!--            width="300px"-->
-<!--          />-->
+          <img
+            src="https://user-images.githubusercontent.com/60249156/105002072-116d1600-5a74-11eb-90fd-2028db9ad89b.png"
+            style="display: block; margin: 0 auto; width: 200px; height: auto;"
+            width="300px"
+          />
           
           <br/>
           
@@ -290,7 +303,8 @@ export class UserService {
               <span>임시 비밀번호로 로그인 하신 후,<br/> 비밀번호를 변경하시기 바랍니다.</span>
             </div>
             
-            <div style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; background-color: #6482ed; text-align: center">
+            <div class="test" style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; 
+                  background-color: #f783ac; text-align: center">
               <span style="color: white; font-size: 16px; font-weight: bold; line-height: 50px">로그인하러가기</span>
             </div>
           </div>
@@ -324,5 +338,96 @@ export class UserService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async unregister(user: User): Promise<void> {
+    const { userId } = user;
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { userId, deletedAt: null },
+      });
+      if (findOneUser) {
+        findOneUser.deletedAt = new Date();
+        await this.userRepository.save(findOneUser);
+      } else {
+        throw new NotFoundException('NO_USER');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+    const { userId } = user;
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { userId, deletedAt: null },
+      });
+      if (findOneUser) {
+        if (updateUserDto.phone) {
+          findOneUser.phone = updateUserDto.phone;
+        }
+        if (updateUserDto.password) {
+          const hashedPassword = await this.hashPassword(
+            updateUserDto.password,
+          );
+          findOneUser.password = hashedPassword;
+        }
+        return await this.userRepository.save(findOneUser);
+      }
+
+      throw new NotFoundException('NO_USER');
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async emailDuplicateCheck(email: string, provider: RolesEnum): Promise<void> {
+    let findOneProvider = null;
+    try {
+      const findOneUser = await this.userRepository.findOne({
+        where: { email },
+      });
+
+      if (provider === RolesEnum.PROVIDER) {
+        findOneProvider = await this.providerAccountRepository.findOne({
+          email,
+        });
+      }
+
+      if (findOneUser || findOneProvider) {
+        throw new ConflictException('EMAIL_DUPLICATED');
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async createAdmin(email: string, password: string): Promise<User> {
+    const hashedPassword = await this.hashPassword(password);
+    try {
+      const findAdmin = await this.userRepository.findOne({
+        email,
+        deletedAt: null,
+      });
+
+      if (findAdmin) {
+        throw new ConflictException('DUPLICATED_EMAIL');
+      }
+      const adminRole = await this.roleService.getRole(RoleEnum.ADMIN);
+      const createAdmin = await this.userRepository.save({
+        email,
+        password: hashedPassword,
+        fullName: 'admin',
+        phone: 'admin',
+        role: adminRole,
+        createdAt: new Date(),
+        deletedAt: null,
+        updatedAt: new Date(),
+      });
+
+      return createAdmin;
+    } catch (err) {}
   }
 }

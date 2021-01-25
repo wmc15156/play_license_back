@@ -37,4 +37,8 @@ export class AwsService {
       region: 'us-east-2',
     });
   }
+
+  getS3() {
+    return new AWS.S3();
+  }
 }

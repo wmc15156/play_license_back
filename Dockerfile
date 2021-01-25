@@ -17,11 +17,10 @@ COPY tsconfig.json /app
 COPY tsconfig.build.json /app
 
 # env file 추후 배포/개발환경 개발시 수정 필요
-COPY development.env /app
+COPY production.env /app
 
 RUN yarn build
 
 ENV NODE_ENV production
-
 
 CMD ["yarn", "start:prod"]
