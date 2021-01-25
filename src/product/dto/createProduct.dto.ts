@@ -142,12 +142,12 @@ export class CreateProductDto {
   castMembers: CastMembers;
 
   @ApiModelProperty({
-    example: true,
+    example: '각색있음',
     description: '각색허용여부',
   })
   @IsBoolean()
   @IsNotEmpty()
-  adaptedStatus: boolean;
+  changeScenario: string;
 
   @ApiModelProperty({
     example: 'https://www.youtube.com/watch?v=example',
