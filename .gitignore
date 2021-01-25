@@ -33,11 +33,13 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-#development.env
-#*.env
+development.env
+*.env
 
 # pem
 *.pem
 sangsang-maru.pem
 
-/lambda/node_modules
+lambda/node_modules/
+
+
