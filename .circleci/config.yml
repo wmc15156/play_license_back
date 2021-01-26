@@ -1,18 +1,26 @@
 version: 2.1
+
 orbs:
   node: circleci/node@3.0.0
+  aws-ecr: circleci/aws-ecr@6.2.0
+  aws-ecs: circleci/aws-ecs@0.0.11
+  aws-cli: circleci/aws-cli@0.1.15
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build-server:
+    machine:
+      image: circleci/classsic:latest
     steps:
       - checkout
-      - node/install-packages:
-          - pkg-manager: yarn
       - run:
-          command: yarn run test
+          name: Inject Production Env File
+          command: |
+            echo ${PROD_ENV} | base64 --decode > ./server/production.env
 
 workflows:
-  build-and-test:
+  build-and-deploy:
     jobs:
-      - build-and-test
+      - build-server:
+          filters:
+            branches:
+              only: develop
