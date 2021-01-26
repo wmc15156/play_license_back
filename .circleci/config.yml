@@ -12,7 +12,7 @@ workflows:
     jobs:
       - run:
           name: Inject Production Env File
-            command: |
+            command:
               echo ${PROD_ENV} | base64 --decode > ./server/production.env
       - aws-ecr/build-and-push-image:
             account-url: AWS_ECR_ACCOUNT_URL
