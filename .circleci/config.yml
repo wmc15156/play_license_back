@@ -9,20 +9,18 @@ orbs:
 
 
 workflows:
-  build-and-deploy:
+  build_and_push_image:
     jobs:
       - aws-ecr/build-and-push-image:
-            account-url: AWS_ECR_ACCOUNT_URL
-            aws-access-key-id: AWS_ACCESS_KEY_ID
-            aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-            dockerfile: Dockerfile
-            path: './'
-            region: AWS_REGION
-            repo: circleci-ecr-orb-demo
-      - filters:
-          branches:
-            - only: develop
-#      - build-server:
-#          filters:
-#            branches:
-#              only: develop
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          dockerfile: Dockerfile
+          path: './'
+          region: AWS_REGION
+          repo: circleci-ecr-orb-demo
+
+  #      - build-server:
+  #          filters:
+  #            branches:
+  #              only: develop
