@@ -16,3 +16,4 @@ workflows:
           path: './'
           region: AWS_REGION
           repo: ecr-scan-test
+          tag: 1.0.4
