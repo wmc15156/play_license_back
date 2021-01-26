@@ -7,15 +7,12 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.15
 
 
+
 workflows:
   build-and-deploy:
     jobs:
-      - run:
-          name: Inject Production Env File
-            command:
-              echo ${PROD_ENV} | base64 --decode > ./server/production.env
       - aws-ecr/build-and-push-image:
-            account-url: AWS_ECR_ACCOUNT_URL
+            account-url: '872144589073.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-scan-test'
             aws-access-key-id: AWS_ACCESS_KEY_ID
             aws-secret-access-key: AWS_SECRET_ACCESS_KEY
             dockerfile: Dockerfile
