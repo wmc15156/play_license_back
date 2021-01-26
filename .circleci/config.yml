@@ -6,21 +6,26 @@ orbs:
   aws-ecs: circleci/aws-ecs@0.0.11
   aws-cli: circleci/aws-cli@0.1.15
 
-jobs:
-  build-server:
-    machine:
-      image: circleci/classsic:latest
-    steps:
-      - checkout
-      - run:
-          name: Inject Production Env File
-          command: |
-            echo ${PROD_ENV} | base64 --decode > ./server/production.env
 
 workflows:
   build-and-deploy:
     jobs:
-      - build-server:
-          filters:
-            branches:
-              only: develop
+      - run:
+          name: Inject Production Env File
+            command: |
+              echo ${PROD_ENV} | base64 --decode > ./server/production.env
+      - aws-ecr/build-and-push-image:
+            account-url: AWS_ECR_ACCOUNT_URL
+            aws-access-key-id: AWS_ACCESS_KEY_ID
+            aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+            dockerfile: Dockerfile
+            path: './'
+            region: AWS_REGION
+            repo: circleci-ecr-orb-demo
+      - filters:
+          branches:
+            - only: develop
+#      - build-server:
+#          filters:
+#            branches:
+#              only: develop
