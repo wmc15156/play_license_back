@@ -19,8 +19,3 @@ workflows:
           path: './'
           region: AWS_REGION
           repo: circleci-ecr-orb-demo
-
-  #      - build-server:
-  #          filters:
-  #            branches:
-  #              only: develop
