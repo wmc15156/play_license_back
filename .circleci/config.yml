@@ -30,7 +30,7 @@ workflows:
           tag: 1.0.4
       - deploy:
           requires:
-            - build_and_push_image
+            - aws-ecr/build-and-push-image
           filters:
             branches:
               only: develop
