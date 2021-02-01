@@ -24,6 +24,9 @@ export class ProviderProductInfo {
   @Column()
   company: string;
 
+  @Column({ type: 'text' })
+  description: string;
+
   @Column()
   name: string;
 
@@ -39,10 +42,10 @@ export class ProviderProductInfo {
 
   //필수제공자료
   @Column()
-  requiredMaterial: string;
+  requiredMaterials: string;
 
-  @Column()
-  selectMaterial: string;
+  @Column({ type: 'json' })
+  selectMaterials: object;
 
   @Column({ type: 'text' })
   comment: string;
@@ -58,9 +61,6 @@ export class ProviderProductInfo {
 
   @Column()
   mainAudience: string;
-
-  @Column()
-  audienceRating: string;
 
   @Column()
   sizeOfPerformance: string;

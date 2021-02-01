@@ -1,7 +1,7 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateProductByBuyerDto {
+export class CreateProductByUserForEducationalDto {
   @ApiModelProperty({
     example: '올림푸스',
     description: '단체이름',
@@ -14,60 +14,33 @@ export class CreateProductByBuyerDto {
     example: '중앙대학교 연극동아리입니다.',
     description: '소속소개',
   })
+  @IsString()
   @IsNotEmpty()
   introduction: string;
 
   @ApiModelProperty({
-    example: '졸업공연',
-    description: '기획내용',
+    example: '교육자료개발',
+    description: '활용목적',
   })
+  @IsString()
   @IsNotEmpty()
-  planDocument: string;
+  objective: string;
 
   @ApiModelProperty({
-    example: {
-      startDate: '2020-10-12',
-      endDate: '2020-11-12',
-    },
-    description: '공연일정',
+    example: 'A형(6개월)',
+    description: '이용기간',
   })
+  @IsString()
   @IsNotEmpty()
-  plan: object;
+  period: string;
 
   @ApiModelProperty({
-    example: '5회',
-    description: '공연회차',
+    example: '2020-10-20',
+    description: '이용 시작일',
   })
+  @IsString()
   @IsNotEmpty()
-  round: string;
-
-  @ApiModelProperty({
-    example: "{ 소극장: '동양아트센터' }",
-    description: '공연장소 type: json',
-  })
-  @IsNotEmpty()
-  place: object;
-
-  @ApiModelProperty({
-    example: "{유료: '30000원/매'}",
-    description: '티켓가격, type: json',
-  })
-  @IsNotEmpty()
-  price: object;
-
-  @ApiModelProperty({
-    example: '각색있음',
-    description: '각색여부',
-  })
-  @IsNotEmpty()
-  isChangedScenario: string;
-
-  @ApiModelProperty({
-    example: '대사',
-    description: '각색범위',
-  })
-  @IsNotEmpty()
-  changedRange: string;
+  startDate: string;
 
   @ApiModelProperty({
     example: ['대본', '보컬악보'],
@@ -84,13 +57,6 @@ export class CreateProductByBuyerDto {
   selectedMaterials: object;
 
   @ApiModelProperty({
-    example: { actor: '12명', staff: '21명' },
-    description: '공연참여 인원',
-  })
-  @IsNotEmpty()
-  participant: object;
-
-  @ApiModelProperty({
     example: '김솔',
     description: '문의자 이름',
   })
@@ -105,9 +71,16 @@ export class CreateProductByBuyerDto {
   phone: string;
 
   @ApiModelProperty({
-    example: '남기는 말을 써요.....',
+    example: '남기는 말을 쓰세요.',
     description: '남기실 말씀',
   })
   @IsNotEmpty()
   comment: string;
+
+  @ApiModelProperty({
+    example: '교육목적용',
+    description: '교육목적용, 기타목적용 두가지 선택지 중 하나',
+  })
+  @IsNotEmpty()
+  category: string;
 }
