@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { JsonTestEntity } from './entity/jsonTest.entity';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as moment from 'moment';
@@ -11,20 +11,19 @@ import * as moment from 'moment';
 import { ProviderProductInfo, ProgressEnum } from './entity/ProductInfo.entity';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { User } from '../user/entity/user.entity';
-import { LoginInfo } from '../auth/entity/loginInfo.entity';
-import { Product } from './product.controller';
 import { CreateProductByBuyerDto } from './dto/createProductByBuyer.dto';
 import {
   BuyerProductInfo,
   BuyerProgressEnum,
 } from './entity/BuyerProductInfo.entity';
+import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
+import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 
 export class BuyerProduct extends BuyerProductInfo {
-  place?: Array<string>;
-  price?: Array<string>;
   requiredMaterial?: Array<string>;
-  changeScenarioAndRange?: Array<string>;
 }
+
+export const limit = 20;
 
 @Injectable()
 export class ProductService {
@@ -35,6 +34,8 @@ export class ProductService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(BuyerProductInfo)
     private readonly buyerProductRepository: Repository<BuyerProductInfo>,
+    @InjectRepository(BuyerProductInfoForEdu)
+    private readonly buyerProductInfoForEduRepository: Repository<BuyerProductInfoForEdu>,
   ) {}
 
   async createProduct(
@@ -43,6 +44,7 @@ export class ProductService {
   ): Promise<ProviderProductInfo> {
     // findUser;
     const { email, userId } = user;
+    const addPriceToVar: object = {};
     try {
       const findUser = await this.userRepository.findOne({
         where: { email },
@@ -51,19 +53,24 @@ export class ProductService {
       if (!findUser) {
         throw new BadRequestException('NO_USER');
       }
+
+      createProductDto.selectMaterials.forEach((item) => {
+        addPriceToVar[item] = '0원';
+      });
+
       const created = await this.productRepository.save({
         title: createProductDto.title,
         company: createProductDto.company,
+        description: createProductDto.description,
         name: createProductDto.name,
         phone: createProductDto.phone,
         brokerageConsignment: createProductDto.brokerageConsignment,
-        requiredMaterial: createProductDto.requiredMaterials.join(' '),
-        selectMaterial: createProductDto.selectMaterials.join(' '),
+        requiredMaterials: createProductDto.requiredMaterials.join(','),
+        selectMaterials: addPriceToVar,
         comment: createProductDto.comment,
         creativeStaff: createProductDto.creativeStaff,
         genre: createProductDto.genre,
         mainAudience: createProductDto.mainAudience,
-        audienceRating: createProductDto.mainAudience,
         sizeOfPerformance: createProductDto.sizeOfPerformance,
         castMembers: createProductDto.castMembers,
         changeScenario: createProductDto.changeScenario,
@@ -90,18 +97,9 @@ export class ProductService {
     }
   }
 
-  async convertProductData(product: Product): Promise<any> {
-    product.requiredMaterials = product.requiredMaterial.split(' ');
-    product.selectMaterials = product.selectMaterial.split(' ');
+  async convertProductData(product): Promise<any> {
     console.log('product', product);
-    const {
-      updatedAt,
-      deletedAt,
-      selectMaterial,
-      requiredMaterial,
-      isCheckInformation,
-      ...result
-    } = product;
+    const { updatedAt, deletedAt, isCheckInformation, ...result } = product;
     console.log(result);
     result.createdAt = moment(product.createdAt).format('YYYY-MM-DD');
     return result;
@@ -138,8 +136,6 @@ export class ProductService {
           const {
             updatedAt,
             deletedAt,
-            selectMaterial,
-            requiredMaterial,
             isCheckInformation,
             ...result
           } = product;
@@ -167,19 +163,16 @@ export class ProductService {
         groupName: createProductByUserDto.groupName,
         introduction: createProductByUserDto.introduction,
         planDocument: createProductByUserDto.planDocument,
-        roundAndPlan: createProductByUserDto.roundAndPlan,
-        spot:
-          Array.isArray(createProductByUserDto.place) &&
-          createProductByUserDto.place.join(' '),
-        priceOption:
-          Array.isArray(createProductByUserDto.price) &&
-          createProductByUserDto.price.join(' '),
-        changeScenario:
-          Array.isArray(createProductByUserDto.changeScenarioAndRange) &&
-          createProductByUserDto.changeScenarioAndRange.join(' '),
+        round: createProductByUserDto.round,
+        place: createProductByUserDto.place,
+        plan: createProductByUserDto.plan,
+        price: createProductByUserDto.price,
+        isChangedScenario: createProductByUserDto.isChangedScenario,
+        changedRange: createProductByUserDto.changedRange,
         requiredMaterials:
-          Array.isArray(createProductByUserDto.requiredMaterial) &&
-          createProductByUserDto.requiredMaterial.join(' '),
+          Array.isArray(createProductByUserDto.requiredMaterials) &&
+          createProductByUserDto.requiredMaterials.join(','),
+        selectedMaterials: createProductByUserDto.selectedMaterials,
         participant: createProductByUserDto.participant,
         name: createProductByUserDto.name,
         phone: createProductByUserDto.phone,
@@ -188,8 +181,6 @@ export class ProductService {
         user: findUser,
       });
 
-      console.log(buyerProduct);
-
       return buyerProduct;
     } catch (err) {
       console.error(err);
@@ -197,20 +188,76 @@ export class ProductService {
     }
   }
 
-  async convertBuyerProductData(buyerProduct: BuyerProduct): Promise<any> {
+  async convertBuyerProductData(buyerProduct: any): Promise<any> {
     const { updatedAt, deletedAt, user, ...result } = buyerProduct;
-    result.place = result.spot.split(' ');
-    result.price = result.priceOption.split(' ');
-    result.requiredMaterial = result.requiredMaterials.split(' ');
-    result.changeScenarioAndRange = result.changeScenario.split(' ');
+    result.requiredMaterials = result.requiredMaterials.split(',');
     result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
-    const {
-      priceOption,
-      changeScenario,
-      spot,
-      requiredMaterials,
-      ...resultData
-    } = result;
-    return resultData;
+    return result;
+  }
+
+  async createProductByUserForEducational(
+    user: User,
+    createProductByUserForEducationalDto: CreateProductByUserForEducationalDto,
+  ) {
+    const { userId } = user;
+    try {
+      const findUser = await this.userRepository.findOne(userId);
+      const created = await this.buyerProductInfoForEduRepository.save({
+        groupName: createProductByUserForEducationalDto.groupName,
+        introduction: createProductByUserForEducationalDto.introduction,
+        objective: createProductByUserForEducationalDto.objective,
+        period: createProductByUserForEducationalDto.period,
+        startDate: createProductByUserForEducationalDto.startDate,
+        requiredMaterials:
+          Array.isArray(
+            createProductByUserForEducationalDto.requiredMaterials,
+          ) && createProductByUserForEducationalDto.requiredMaterials.join(','),
+        selectedMaterials:
+          createProductByUserForEducationalDto.selectedMaterials,
+        name: createProductByUserForEducationalDto.name,
+        phone: createProductByUserForEducationalDto.phone,
+        comment: createProductByUserForEducationalDto.comment,
+        progress: BuyerProgressEnum.REVIEW_ADMIN,
+        category: createProductByUserForEducationalDto.category,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: findUser,
+      });
+
+      return created;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async searchProduct(
+    query: string,
+    page: number,
+  ): Promise<ProviderProductInfo[]> {
+    const pagination = page - 1;
+    try {
+      const findProduct = await this.productRepository
+        .createQueryBuilder('product')
+        .where('product.title like :title', { title: `%${query}%` })
+        .andWhere('product.progress = :progress', {
+          progress: ProgressEnum.INPROGRESS,
+        })
+        .skip(pagination)
+        .take(limit)
+        .getMany();
+      return findProduct;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async convertProductsData(product: ProviderProductInfo[]): Promise<any> {
+    return product.map((item) => {
+      const { updatedAt, deletedAt, ...result } = item;
+      result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
+      return result;
+    });
   }
 }

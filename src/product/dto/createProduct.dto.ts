@@ -30,6 +30,13 @@ export class CreateProductDto {
   company: string;
 
   @ApiModelProperty({
+    example: '제작사 설명을 자유롭게 입력해주세요.',
+    description: '제작사 설명',
+  })
+  @IsString()
+  description: string;
+
+  @ApiModelProperty({
     example: '김현진',
     description: '실무자 이름',
   })
@@ -62,16 +69,27 @@ export class CreateProductDto {
   brokerageConsignment: string;
 
   @ApiModelProperty({
-    example: '[대본, 공연MR, 연습MR, 악보, 원본포스터]',
+    example: '2020년',
+    description: '초연 연도',
+  })
+  @IsString()
+  year: string;
+
+  @ApiModelProperty({
+    example: '["대본", "악보", "원본포스터"]',
     description: '필수제공자료',
   })
   @IsArray()
   @IsNotEmpty()
   requiredMaterials: [string];
 
+  //  일단 배열로 받는다고 가정하에 서버에서 금액부분을 추가해서 넣을예정
+  //
   @ApiModelProperty({
-    example: '[의상디자인, 소품디자인, 무대디잔...]',
-    description: '선택제공자료',
+    example: '["의상디자인", "소품디자인", "무대디자인"]',
+    description:
+      '선택제공자료 \n 배열로 받을지 객체로 받을지 결정이 필요함. ' +
+      '배열로 받아서 금액부분은 default 0원으로 넣을예정',
   })
   @IsArray()
   @IsNotEmpty()
@@ -110,20 +128,12 @@ export class CreateProductDto {
   genre: string;
 
   @ApiModelProperty({
-    example: '유아',
-    description: '주요 관람층',
+    example: '일반(15세~성인)',
+    description: '주관람층',
   })
   @IsString()
   @IsNotEmpty()
   mainAudience: string;
-
-  @ApiModelProperty({
-    example: '전연령',
-    description: '관람등급',
-  })
-  @IsString()
-  @IsNotEmpty()
-  audienceRating: string;
 
   @ApiModelProperty({
     example: '소규모',
@@ -145,7 +155,6 @@ export class CreateProductDto {
     example: '각색있음',
     description: '각색허용여부',
   })
-  @IsBoolean()
   @IsNotEmpty()
   changeScenario: string;
 
@@ -168,7 +177,8 @@ export class CreateProductDto {
 
   @ApiModelProperty({
     example:
-      '하지만 깊은 병에 시달리는 부모님의 존재가 늘 불안한 공기를 몰고 오고, 더 이상 나아지지 않는 현실 앞에 마당 씨 또한 지쳐간다.',
+      '하지만 깊은 병에 시달리는 부모님의 존재가 늘 불안한 공기를 몰고 오고, 더 이상 나아지지 않는 현실 \n ' +
+      '앞에 마당 씨 또한 지쳐간다.',
     description: '시놉시',
   })
   @IsString()

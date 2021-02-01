@@ -8,17 +8,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
-
-export enum BuyerProgressEnum {
-  REVIEW_ADMIN = '관리자 검토중',
-  SUPPLEMENTAL_REQUEST = '보완요청',
-  REVIEW_PROVIDER = '제작사 검토중',
-  COMPLETED = '승인완료',
-  CANCELED = '철회완료',
-}
+import { BuyerProgressEnum } from './BuyerProductInfo.entity';
 
 @Entity()
-export class BuyerProductInfo {
+export class BuyerProductInfoForEdu {
   @PrimaryGeneratedColumn('increment')
   productId: number;
 
@@ -29,27 +22,13 @@ export class BuyerProductInfo {
   introduction: string;
 
   @Column()
-  planDocument: string;
-
-  //
-
-  @Column({ type: 'json' })
-  plan: object;
+  objective: string;
 
   @Column()
-  round: string;
-
-  @Column({ type: 'json' })
-  place: object;
-
-  @Column({ type: 'json' })
-  price: object;
+  period: string;
 
   @Column()
-  isChangedScenario: string;
-
-  @Column()
-  changedRange: string;
+  startDate: string;
 
   @Column()
   requiredMaterials: string;
@@ -57,20 +36,20 @@ export class BuyerProductInfo {
   @Column({ type: 'json' })
   selectedMaterials: object;
 
-  @Column({ type: 'json' })
-  participant: object;
-
   @Column()
   name: string;
 
   @Column()
   phone: string;
 
-  @Column({ type: 'text' })
+  @Column()
   comment: string;
 
   @Column()
   progress: BuyerProgressEnum;
+
+  @Column()
+  category: string;
 
   @CreateDateColumn()
   createdAt: Date | string;
