@@ -6,16 +6,6 @@ orbs:
   aws-ecs: circleci/aws-ecs@0.0.11
   aws-cli: circleci/aws-cli@0.1.15
 
-jobs:
-  deploy:
-    executor: aws-cli/default
-    steps:
-      - checkout
-      - aws-cli/install
-      - run:
-          name: Deploy using AWS CodeDeploy
-          command: |
-            aws ecs update -service --force-new-deployment --cluster ecs-test --service ecs-test
 
 workflows:
   build_and_push_image:
@@ -28,8 +18,6 @@ workflows:
           path: './'
           region: AWS_REGION
           repo: ecr-scan-test
-          tag: 1.0.4
-      - deploy:
-          requires:
-            - aws-ecr/build-and-push-image
+          tag: 1.0.5
+
 
