@@ -8,10 +8,16 @@ import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entity/user.entity';
 import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
+import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProviderProductInfo, User, BuyerProductInfo]),
+    TypeOrmModule.forFeature([
+      ProviderProductInfo,
+      User,
+      BuyerProductInfo,
+      BuyerProductInfoForEdu,
+    ]),
   ],
   controllers: [ProductController],
   providers: [ProductService],

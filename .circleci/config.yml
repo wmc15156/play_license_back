@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Deploy using AWS CodeDeploy
           command: |
-            aws ecs update-service --force-new-deployment --cluster ecs-test --service ecs-test
+            aws ecs update -service --force-new-deployment --cluster ecs-test --service ecs-test
 
 workflows:
   build_and_push_image:
