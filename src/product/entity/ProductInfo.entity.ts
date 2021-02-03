@@ -13,6 +13,7 @@ import { CastMembers, CreativeStaff } from '../dto/createProduct.dto';
 
 export enum ProgressEnum {
   INPROGRESS = '관리자검토중',
+  NEED_SUPPLEMENT = '보완필요',
   COMPLETED = '등록완료',
 }
 

@@ -260,4 +260,30 @@ export class ProductService {
       return result;
     });
   }
+
+  async getBuyerInquiryDetails(user):Promise<Promise<BuyerProductInfoForEdu>[] | Promise<BuyerProductInfo>[]> {
+    const { userId } = user;
+    let sumProduct = [];
+    try {
+      const findUserAndProduct = await this.userRepository.find({
+        where: {userId},
+        relations: ['buyerProductInfo','buyerProductInfoEdu']
+      });
+
+      sumProduct = sumProduct.concat(findUserAndProduct[0].buyerProductInfoEdu)
+      sumProduct = sumProduct.concat(findUserAndProduct[0].buyerProductInfo);
+
+      return  sumProduct.map((product) => {
+        const { updatedAt, deletedAt, ...result } = product;
+        result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
+        result.requiredMaterials = result.requiredMaterials.split(',');
+        return result;
+      });
+
+    } catch(err) {
+      console.error(err);
+    }
+
+
+  }
 }
