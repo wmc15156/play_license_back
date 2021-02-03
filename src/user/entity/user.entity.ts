@@ -13,6 +13,7 @@ import { LoginInfo } from '../../auth/entity/loginInfo.entity';
 import { Role } from '../../roles/entity/role.entity';
 import { ProviderProductInfo } from '../../product/entity/ProductInfo.entity';
 import { BuyerProductInfo } from '../../product/entity/BuyerProductInfo.entity';
+import {BuyerProductInfoForEdu} from "../../product/entity/BuyerProductInfoForEdu.entity";
 
 @Entity()
 export class User {
@@ -62,4 +63,7 @@ export class User {
 
   @OneToMany((type) => BuyerProductInfo, (product) => product.user)
   buyerProductInfo: BuyerProductInfo[];
+
+  @OneToMany((type) => BuyerProductInfoForEdu, (product) => product.user)
+  buyerProductInfoEdu: BuyerProductInfoForEdu[];
 }

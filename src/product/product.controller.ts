@@ -100,6 +100,17 @@ export class ProductController {
     return res.status(201).json(convertedData);
   }
 
+  @Get('/buyer/cart')
+  @ApiOperation({ summary: 'buyer 문의내역 리스트'})
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: 200, description: 'success'})
+  @ApiResponse({ status: 400, description: 'bad request'})
+  async getBuyerInquiryDetails(@GetUser() user:User, @Res() res: Response){
+    const products = await this.productService.getBuyerInquiryDetails(user);
+    return res.status(200).json(products);
+  }
+
+
   @Get('/cart')
   @ApiOperation({ summary: '사용자가 찜한 데이터 가져오기' })
   @UseGuards(AuthGuard('jwt'))
