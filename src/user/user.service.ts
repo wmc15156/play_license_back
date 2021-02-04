@@ -416,6 +416,7 @@ export class UserService {
         throw new ConflictException('DUPLICATED_EMAIL');
       }
       const adminRole = await this.roleService.getRole(RoleEnum.ADMIN);
+      console.log('here');
       const createAdmin = await this.userRepository.save({
         email,
         password: hashedPassword,
@@ -428,6 +429,9 @@ export class UserService {
       });
 
       return createAdmin;
-    } catch (err) {}
+    } catch (err) {
+      console.error('error', err);
+      throw err;
+    }
   }
 }
