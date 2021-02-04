@@ -1,14 +1,14 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCurationDto {
   @ApiModelProperty({
-    example: '요즘 뜨는 작품',
-    description: 'curation'
+    example: '[베쓰맨]',
+    description: '작품이름'
   })
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  curation: string;
+  productTitle: [string];
 
   @ApiModelProperty({
     example: 'abcd',
@@ -38,9 +38,16 @@ export class CreateCurationDto {
     example: '1',
     description: '큐레이션 순서를 저장하기 위한 숫자, 중복되는 숫자가 있으면 안됨. / 타입: number'
   })
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   order: number;
 
+  @ApiModelProperty({
+    example: 'http://imageurl.com',
+    description: '유형이 스페셜일 경우 image 첨부해서 보내기'
+  })
+  @IsString()
+  @IsOptional()
+  image: string;
 
 }

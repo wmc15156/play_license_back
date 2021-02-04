@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { CurationService } from './curation.service';
@@ -13,6 +13,7 @@ import { RolesGuard } from '../roles/roles.guard';
 import { User } from '../user/entity/user.entity';
 import { GetUser } from '../decorator/create-user.decorator';
 import { CreateCurationDto } from './dto/createCuration.dto';
+import { RegisterProductQuery } from './queries/registerProduct';
 
 @ApiTags('curation')
 @Controller('curation')
@@ -24,14 +25,21 @@ export class CurationController {
     private readonly curationRepository: Repository<CurationInfo>
   ) {}
 
-  @Post('/')
+  @Post('/:curationName')
   @ApiOperation({ summary: '큐레이션 등록'})
   @Roles(RolesEnum.ADMIN)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiResponse( { status: 201, description: 'success'})
   @ApiResponse({ status: 409, description: 'already exist curation'})
-  async createCuration(@GetUser() user: User, @Body(ValidationPipe) createCurationDto: CreateCurationDto, @Res() res: Response) {
-    await this.curationService.createCuration(createCurationDto);
+  async createCuration(
+    @GetUser() user: User,
+    @Body(ValidationPipe) createCurationDto: CreateCurationDto,
+    @Param() params: RegisterProductQuery,
+    @Res() res: Response
+  ) {
+    const { curationName } = params;
+    await this.curationService.createCuration(createCurationDto, curationName);
+
     return res.status(201).send('success');
   }
 

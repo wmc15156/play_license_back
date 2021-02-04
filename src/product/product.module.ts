@@ -22,5 +22,6 @@ import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
   controllers: [ProductController],
   providers: [ProductService],
   exports: [ProductService],
+
 })
 export class ProductModule {}

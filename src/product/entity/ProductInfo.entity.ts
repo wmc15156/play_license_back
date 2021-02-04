@@ -12,6 +12,7 @@ import { User } from '../../user/entity/user.entity';
 import { CastMembers, CreativeStaff } from '../dto/createProduct.dto';
 import { CurationInfo } from '../../curation/entity/CurationInfo.entity';
 
+
 export enum ProgressEnum {
   INPROGRESS = '관리자검토중',
   NEED_SUPPLEMENT = '보완필요',
@@ -122,6 +123,7 @@ export class ProviderProductInfo {
   @JoinTable({ name: 'user_product_cart' })
   users: User[];
 
-  @ManyToOne((type) => CurationInfo, curation => curation.productInfo)
-  curation: CurationInfo;
+  @ManyToMany((type) => CurationInfo, curation => curation.productInfo)
+  @JoinTable({ name: 'curation_product' })
+  curations: CurationInfo;
 }
