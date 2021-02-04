@@ -14,7 +14,7 @@ import {
 import { Request, Response } from 'express';
 
 import { BuyerProduct, ProductService } from './product.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleEnum } from '../roles/typed/role.enum';
 import { Roles } from '../roles/roles.decorator';
 import { AuthGuard } from '@nestjs/passport';
@@ -30,6 +30,7 @@ import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
 
+@ApiTags('product(작품등록)')
 @Controller('product')
 export class ProductController {
   constructor(

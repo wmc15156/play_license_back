@@ -4,12 +4,13 @@ import {
   DeleteDateColumn,
   Entity,
   JoinTable,
-  ManyToMany,
+  ManyToMany, ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 import { CastMembers, CreativeStaff } from '../dto/createProduct.dto';
+import { CurationInfo } from '../../curation/entity/CurationInfo.entity';
 
 export enum ProgressEnum {
   INPROGRESS = '관리자검토중',
@@ -120,4 +121,7 @@ export class ProviderProductInfo {
   @ManyToMany((type) => User, (user) => user.products)
   @JoinTable({ name: 'user_product_cart' })
   users: User[];
+
+  @ManyToOne((type) => CurationInfo, curation => curation.productInfo)
+  curation: CurationInfo;
 }
