@@ -6,7 +6,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
+  OneToMany, OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LoginInfo } from '../../auth/entity/loginInfo.entity';
@@ -14,6 +14,7 @@ import { Role } from '../../roles/entity/role.entity';
 import { ProviderProductInfo } from '../../product/entity/ProductInfo.entity';
 import { BuyerProductInfo } from '../../product/entity/BuyerProductInfo.entity';
 import {BuyerProductInfoForEdu} from "../../product/entity/BuyerProductInfoForEdu.entity";
+import { Question } from '../../question/entity/question.entity';
 
 @Entity()
 export class User {
@@ -66,4 +67,7 @@ export class User {
 
   @OneToMany((type) => BuyerProductInfoForEdu, (product) => product.user)
   buyerProductInfoEdu: BuyerProductInfoForEdu[];
+
+  @OneToOne((tpye) => Question)
+  question;
 }

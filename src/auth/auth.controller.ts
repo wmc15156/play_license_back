@@ -243,7 +243,7 @@ export class AuthController {
   setUserTokenToCookie(res: Response, token: string) {
     res.cookie('authtoken', token, {
       signed: true,
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60,
       httpOnly: true,
       // secure: true,
     });

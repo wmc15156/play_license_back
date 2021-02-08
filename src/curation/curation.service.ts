@@ -4,6 +4,7 @@ import { CurationInfo } from './entity/CurationInfo.entity';
 import { Repository } from 'typeorm';
 import { CreateCurationDto } from './dto/createCuration.dto';
 import { ProviderProductInfo } from '../product/entity/ProductInfo.entity';
+import { Curation } from './interface/curation.interface';
 
 
 
@@ -51,4 +52,29 @@ export class CurationService {
       throw err;
     }
   }
+
+  async getCurationInfo(page: number): Promise<CurationInfo[]> {
+
+    page = (page - 1) * 10;
+
+    let curationInfo: Curation[] = await this.curationRepository.createQueryBuilder('curation')
+      .leftJoinAndSelect('curation.productInfo', 'productInfo')
+      .skip(page)
+      .take(10)
+      .orderBy('curation.curationId', 'ASC')
+      .getMany();
+
+    curationInfo = curationInfo.map((curation) => {
+      curation.count = curation.productInfo.length;
+      return curation;
+    });
+    return curationInfo;
+  }
+
+  async curationCount():Promise<number> {
+    const count: number = await this.curationRepository.createQueryBuilder('curation')
+      .select("DISTINCT(`curationId`)").getCount();
+    return count;
+  }
+
 }

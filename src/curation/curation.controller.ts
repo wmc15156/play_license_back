@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { CurationService } from './curation.service';
@@ -14,6 +25,7 @@ import { User } from '../user/entity/user.entity';
 import { GetUser } from '../decorator/create-user.decorator';
 import { CreateCurationDto } from './dto/createCuration.dto';
 import { RegisterProductQuery } from './queries/registerProduct';
+import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
 
 @ApiTags('curation')
 @Controller('curation')
@@ -41,6 +53,23 @@ export class CurationController {
     await this.curationService.createCuration(createCurationDto, curationName);
 
     return res.status(201).send('success');
+  }
+
+  // TODO: curation 모아보기 생성
+  // TODO : curation 페이지네이션
+
+  @Get('/')
+  @ApiOperation({ summary: '큐레이션 관리'})
+  @ApiImplicitQuery({ name: 'page', type: 'string' })
+  @Roles(RolesEnum.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiResponse({ status: 200, description: 'success'})
+  @ApiResponse({ status: 401, description: 'unauthorized '})
+  async sendCurationInfo(@Query('page', ParseIntPipe) page: number, @Res() res: Response) {
+    const count: number = await this.curationService.curationCount();
+    const curationInfo: CurationInfo[] = await this.curationService.getCurationInfo(page);
+
+    return res.status(200).json({ count, curationInfo })
   }
 
 }

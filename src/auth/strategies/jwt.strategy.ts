@@ -29,6 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: any, done: (err: any, payload: any) => void) {
     try {
       const { userId } = payload;
+      console.log(userId);
       const user = await this.userService.findOneByUserId(userId);
 
       this.logger.debug(
@@ -36,6 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       );
       done(null, user);
     } catch (e) {
+      console.error(e);
       done(e.message, false);
     }
   }

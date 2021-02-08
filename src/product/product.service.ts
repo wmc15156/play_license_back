@@ -284,6 +284,5 @@ export class ProductService {
       console.error(err);
     }
 
-
   }
 }
