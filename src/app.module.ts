@@ -15,6 +15,7 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { ImageModule } from './image/image.module';
 import { ProductModule } from './product/product.module';
 import { CurationModule } from './curation/curation.module';
+import { QuestionModule } from './question/question.module';
 
 const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
 
@@ -35,6 +36,7 @@ const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
     ImageModule,
     ProductModule,
     CurationModule,
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
