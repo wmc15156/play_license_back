@@ -12,10 +12,9 @@ async function bootstrap() {
   dotenv.config({
     path: process.env.NODE_ENV ? 'production.env' : 'development.env',
   });
-  console.log(process.env.COOKIE_SECRET_KEY);
   app.use(
     cors({
-      origin: ['http://localhost:3000'],
+      origin: ['http://localhost:3000', 'https://www.shortlysoftware.com'],
       credentials: true,
     }),
   );

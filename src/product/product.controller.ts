@@ -136,13 +136,6 @@ export class ProductController {
     return res.status(200).send('success');
   }
 
-  // TODO: buyer 문의내역 모아보기 userService 구현
-  // TODO: 전체적인 API 점검
-  // TODO: Buyer 교육목적용 / 기타목적용 API 구현 (o)
-  // TODO: search 검색 API 구현 (o)
-  // TODO: 선택자료만 전송해주는 API 구현
-  // TODO: 실제 admin page 에서 curation 어떻게 구현됐는지
-
   @Get('/search')
   @ApiImplicitQuery({ name: 'q', type: 'string' })
   @ApiImplicitQuery({ name: 'page', type: 'string' })
@@ -155,9 +148,14 @@ export class ProductController {
     @Res() res: Response,
   ) {
     const product = await this.productService.searchProduct(query, page);
+    console.log(product)
     const result = await this.productService.convertProductsData(product);
     return res.status(200).json(result);
   }
+
+  @Get('/admin')
+  
+
 
   @Post('/')
   async test(@Body() data: string) {

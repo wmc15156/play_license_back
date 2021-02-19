@@ -4,6 +4,8 @@ import { DotenvService } from '../dotenv/dotenv.service';
 
 @Injectable()
 export class AwsService {
+
+
   // private readonly sns = new AWS.SNS({
   //   apiVersion: 'latest',
   //   region: 'us-east-1',
@@ -24,8 +26,10 @@ export class AwsService {
 
   getSNS() {
     return new AWS.SNS({
-      apiVersion: '2010-03-31',
+      apiVersion: 'latest',
       region: 'ap-northeast-1',
+      accessKeyId: this.dotenvConfigService.get('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.dotenvConfigService.get('AWS_SECRET_KEY'),
     });
   }
 

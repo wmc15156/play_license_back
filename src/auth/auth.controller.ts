@@ -2,11 +2,11 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpStatus,
   Logger,
   Post,
   Req,
-  Res,
+  Res, UnauthorizedException,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -34,6 +34,8 @@ import { ProviderAccount } from './entity/providerAccount.entity';
 import { Repository } from 'typeorm';
 import { DuplicateEmailDto } from './dto/duplicateEmail.dto';
 import { RolesEnum } from './enum/Roles.enum';
+import { constants } from 'http2';
+
 
 @ApiTags('auth(인증)')
 @Controller('auth')
@@ -58,13 +60,15 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    // service로 빼기
+    console.log('---', createUserDto, req.signedCookies);
     let oauthId: string | null = null;
     if (req.signedCookies['Oauthtoken']) {
       const decoded = jwt.verify(
         req.signedCookies['Oauthtoken'],
         this.dotenvConfigService.get('JWT_SECRET_KEY'),
       );
-
+      console.log('decode');
       if (decoded) {
         switch (decoded['provider']) {
           case 'google':
@@ -80,7 +84,7 @@ export class AuthController {
       }
       oauthId = decoded['oauthId'];
     }
-
+    console.log(3);
     const createdUser = await this.authService.signUp(createUserDto, oauthId);
 
     // const jwtToken = await this.authService.createUserToken(
@@ -89,6 +93,8 @@ export class AuthController {
     // );
     //
     // this.setUserTokenToCookie(res, jwtToken);
+    res.clearCookie('authtoken');
+    res.clearCookie('Oauthtoken');
     return res.status(201).json({ success: true });
   }
 
@@ -204,9 +210,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const { email, provider } = duplicateEmailDto;
-
     await this.userService.emailDuplicateCheck(email, provider);
-
     return res.status(200).json({ success: true });
   }
 
@@ -240,21 +244,34 @@ export class AuthController {
     await this.authService.createAdmin(email, password);
     res.send('ok');
   }
+
+  @Get('/check/login')
+  @ApiOperation({ summary: 'login 여부 확인'})
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse( { status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
+  async isLogin() {
+    return;
+  }
+
+
   setUserTokenToCookie(res: Response, token: string) {
     res.cookie('authtoken', token, {
       signed: true,
-      maxAge: 60 * 60,
+      maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
+      secure: true,
+      sameSite: 'none',
     });
   }
 
   setOAuthTokenToCookie(res: Response, token: string) {
     res.cookie('Oauthtoken', token, {
       signed: true,
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
+      secure: true,
+      sameSite: 'none',
     });
   }
 
@@ -264,25 +281,25 @@ export class AuthController {
     // User with the email has been already deleted.
     if (user.isDeleted) {
       return res.send(
-        `<script>alert("이미 탈퇴한 계정입니다.");window.location.replace("http://localhost:3000/login");</script>`,
+        `<script>alert("이미 탈퇴한 계정입니다.");window.location.replace('https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/login/select');</script>`,
       );
     }
     // TODO: 리다이렉트 주소를 환경변수로 설정이 필요해보암
     if (user.noEmail) {
       return res.send(
-        `<script>alert("이메일을 제공해주셔야 합니다.");window.location.replace("http://localhost:3000/login");</script>`,
+        `<script>alert("이메일을 제공해주셔야 합니다.");window.location.replace("https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/login/select");</script>`,
       );
     }
 
     if (user.alreadySignedUp) {
       return res.send(
-        `<script>alert("이미 다른 방식으로 가입한 이메일입니다. 해당 방법으로 로그인해주세요.");window.location.replace("http://localhost:3000/register");</script>`,
+        `<script>alert("이미 다른 방식으로 가입한 이메일입니다. 해당 방법으로 로그인해주세요.");window.location.replace("https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/login/select");</script>`,
       );
     }
 
     if (user.noUser) {
       return res.send(
-        `<script>alert("해당 이메일은 가입되지 않은 이메일입니다. 회원가입을 해주세요");window.location.replace("http://localhost:3000/register");</script>`,
+        `<script>alert("해당 이메일은 가입되지 않은 이메일입니다. 회원가입을 해주세요");window.location.replace("https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/signup/");</script>`,
       );
     }
 
@@ -295,7 +312,7 @@ export class AuthController {
       );
 
       this.setUserTokenToCookie(res, jwt);
-      return res.redirect('http://localhost:3000/');
+      return res.redirect(`${this.dotenvConfigService.get('URL')}`);
     }
 
     // oauth is validated but no user
@@ -306,7 +323,7 @@ export class AuthController {
       });
 
       this.setOAuthTokenToCookie(res, oauthInfoToken);
-      return res.redirect(`http://localhost:3000/register?email=${user.email}`);
+      return res.redirect(`${this.dotenvConfigService.get('URL')}/signup/sns?email=${user.email}`);
     }
   }
 }

@@ -34,6 +34,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
 
       this.logger.log(`${profile}, this is kakao Profile test`);
       const email = profile['_json'].kakao_account.email || '';
+      console.log(email, profile);
 
       const user = await this.authService.getUserFromOAuthLogin(
         profile.id,

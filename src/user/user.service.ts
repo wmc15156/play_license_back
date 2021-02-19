@@ -62,7 +62,7 @@ export class UserService {
           deletedAt: null,
         },
       });
-
+      console.log('---------0---------')
       if (isEmailDuplicated) {
         throw new ConflictException('EMAIL_DUPLICATED');
       }
@@ -75,16 +75,18 @@ export class UserService {
       ) {
         throw new BadRequestException('MISSING_PASSWD');
       }
-
-      hashedPassword = await this.hashPassword(createUserDto.password);
-
+      console.log('---------1---------')
+      if(createUserDto.password) {
+        hashedPassword = await this.hashPassword(createUserDto.password);
+      }
+      console.log('---------2---------')
       const userInfo = createUserDto;
       if (createUserDto.role === RolesEnum.USER) {
         userRole = await this.roleService.getRole(RoleEnum.USER);
       } else if (createUserDto.role === RolesEnum.PROVIDER) {
         userRole = await this.roleService.getRole(RoleEnum.PROVIDER);
       }
-
+      console.log('---------3---------')
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: {
           phone: userInfo.phone,
@@ -159,6 +161,12 @@ export class UserService {
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: { phone },
       });
+
+      console.log(phoneValidation);
+
+      if(phoneValidation.validationCode !== code) {
+        throw new BadRequestException({ fail: true });
+      }
 
       // 인증 시 validation 테이블에 휴대폰 번호 및 code 저장 해놓음
       if (!phoneValidation) {

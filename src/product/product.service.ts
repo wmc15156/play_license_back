@@ -237,6 +237,7 @@ export class ProductService {
   ): Promise<ProviderProductInfo[]> {
     const pagination = page - 1;
     try {
+      console.log(query);
       const findProduct = await this.productRepository
         .createQueryBuilder('product')
         .where('product.title like :title', { title: `%${query}%` })

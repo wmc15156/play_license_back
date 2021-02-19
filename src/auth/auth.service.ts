@@ -46,12 +46,14 @@ export class AuthService {
 
   async signUp(createUserDto: CreateUserDto, oauthId?: string) {
     const { provider } = createUserDto;
+    console.log(createUserDto, oauthId);
     try {
-      if (provider !== AuthProviderEnum.LOCAL && !provider) {
-        throw new BadRequestException('MISSING_PROVIDER');
-      }
+      // if (provider !== AuthProviderEnum.LOCAL && !provider) {
+      //   throw new BadRequestException('MISSING_PROVIDER');
+      // }
 
       const createdUser = await this.userService.create(createUserDto);
+      console.log(createdUser);
 
       if (provider === AuthProviderEnum.LOCAL) {
         await this.loginInfoRepository.save({
@@ -73,7 +75,7 @@ export class AuthService {
                 oauthId,
               },
             });
-
+            console.log(googleLogin,'here');
             googleLogin.loginInfo = newLoginInfo;
             await this.googleLoginRepository.save(googleLogin);
             break;
@@ -138,7 +140,7 @@ export class AuthService {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
+    console.log(isMatch)
     if (isMatch) {
       const { password: userPasswd, ...result } = user;
       // 패스워드를 제외한 나머지 데이터 return
