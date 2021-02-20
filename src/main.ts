@@ -14,7 +14,7 @@ async function bootstrap() {
   });
   app.use(
     cors({
-      origin: ['http://localhost:3000', 'https://www.shortlysoftware.com'],
+      origin: ['http://localhost:3000', 'https://www.shortlysoftware.com', 'https://rufree-junior-p1-sangsang-frontend-swart.vercel.app'],
       credentials: true,
     }),
   );

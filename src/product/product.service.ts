@@ -23,6 +23,10 @@ export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
 }
 
+export class ProviderProduct extends ProviderProductInfo {
+  brokerageConsignments: string | string[]
+}
+
 export const limit = 20;
 
 @Injectable()
@@ -64,7 +68,7 @@ export class ProductService {
         description: createProductDto.description,
         name: createProductDto.name,
         phone: createProductDto.phone,
-        brokerageConsignment: createProductDto.brokerageConsignment,
+        brokerageConsignment: createProductDto.brokerageConsignment.join(','),
         requiredMaterials: createProductDto.requiredMaterials.join(','),
         selectMaterials: addPriceToVar,
         comment: createProductDto.comment,
@@ -84,6 +88,7 @@ export class ProductService {
         numberList: createProductDto.numberList,
         isCheckInformation: createProductDto.isCheckInformation,
         category: createProductDto.category,
+        year: createProductDto.year,
         progress: ProgressEnum.INPROGRESS,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -236,8 +241,13 @@ export class ProductService {
     page: number,
   ): Promise<ProviderProductInfo[]> {
     const pagination = page - 1;
-    try {
+    console.log(query,'요청');
+    if(!query) {
       console.log(query);
+      return [];
+    }
+    try {
+      console.log(query, 'rty');
       const findProduct = await this.productRepository
         .createQueryBuilder('product')
         .where('product.title like :title', { title: `%${query}%` })
@@ -254,12 +264,27 @@ export class ProductService {
     }
   }
 
-  async convertProductsData(product: ProviderProductInfo[]): Promise<any> {
-    return product.map((item) => {
-      const { updatedAt, deletedAt, ...result } = item;
-      result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
+  async test2(data: string) {
+    const findProduct = await this.productRepository
+      .createQueryBuilder('product2')
+      .select('product2')
+      .from(ProviderProductInfo, undefined)
+      .getMany()
+    console.log(findProduct,123)
+  }
+
+  async convertProductsData(product: any): Promise<any> {
+    const data =  product.map((item) => {
+      const { updatedAt, deletedAt, castMembers, changeScenario,...result } = item;
+      result.brokerageConsignments = result.brokerageConsignment.split(',');
+      result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
+        return cate.replace("목적","");
+      });
+
       return result;
     });
+    console.log(data.brokerageConsignments, data);
+    return data;
   }
 
   async getBuyerInquiryDetails(user):Promise<Promise<BuyerProductInfoForEdu>[] | Promise<BuyerProductInfo>[]> {

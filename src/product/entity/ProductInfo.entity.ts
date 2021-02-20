@@ -108,6 +108,9 @@ export class ProviderProductInfo {
   isCheckInformation: boolean;
 
   @Column()
+  year: string;
+
+  @Column()
   progress: ProgressEnum;
 
   @CreateDateColumn()

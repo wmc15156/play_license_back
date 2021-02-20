@@ -61,12 +61,12 @@ export class CreateProductDto {
   phone: string;
 
   @ApiModelProperty({
-    example: '공연목적',
+    example: '[공연목적, 교육목적, 기타]',
     description: '중개위탁',
   })
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  brokerageConsignment: string;
+  brokerageConsignment: string[];
 
   @ApiModelProperty({
     example: '2020년',
@@ -232,4 +232,5 @@ export class CreateProductDto {
   @IsBoolean()
   @IsNotEmpty()
   isCheckInformation: boolean;
+
 }

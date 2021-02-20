@@ -148,7 +148,9 @@ export class ProductController {
     @Res() res: Response,
   ) {
     const product = await this.productService.searchProduct(query, page);
-    console.log(product)
+    if(product.length === 0) {
+      return res.status(200).json([]);
+    }
     const result = await this.productService.convertProductsData(product);
     return res.status(200).json(result);
   }
@@ -170,5 +172,11 @@ export class ProductController {
       .getMany();
 
     console.log(result);
+  }
+
+  @Post('/test')
+  async test2(@Body() data:string) {
+    await this.productService.test2(data);
+    return ;
   }
 }
