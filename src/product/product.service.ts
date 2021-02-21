@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 import * as moment from 'moment';
 
 import { ProviderProductInfo, ProgressEnum } from './entity/ProductInfo.entity';
@@ -241,13 +241,10 @@ export class ProductService {
     page: number,
   ): Promise<ProviderProductInfo[]> {
     const pagination = page - 1;
-    console.log(query,'요청');
     if(!query) {
-      console.log(query);
       return [];
     }
     try {
-      console.log(query, 'rty');
       const findProduct = await this.productRepository
         .createQueryBuilder('product')
         .where('product.title like :title', { title: `%${query}%` })
@@ -310,5 +307,22 @@ export class ProductService {
       console.error(err);
     }
 
+  }
+
+  async deleteWishProduct(id: number, me:User): Promise<null> {
+    const product = await this.productRepository.findOne({
+      where: {
+        productId: id
+      },
+      relations: ['users']
+    });
+    if(!product) {
+      throw new ForbiddenException('product is not exist');
+    }
+    product.users = product.users.filter((user) => {
+      return user.userId !== me.userId
+    });
+    await this.productRepository.save(product);
+    return;
   }
 }

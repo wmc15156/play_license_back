@@ -122,7 +122,9 @@ export class ProviderProductInfo {
   @DeleteDateColumn()
   deletedAt: Date | string;
 
-  @ManyToMany((type) => User, (user) => user.products)
+  @ManyToMany((type) => User, (user) => user.products, {
+    cascade: true
+  })
   @JoinTable({ name: 'user_product_cart' })
   users: User[];
 

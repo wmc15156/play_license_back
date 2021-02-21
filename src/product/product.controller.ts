@@ -1,7 +1,7 @@
 import {
   Body,
-  Controller,
-  Get,
+  Controller, Delete,
+  Get, HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -29,6 +29,8 @@ import { Repository } from 'typeorm';
 import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
+import { constants } from 'http2';
+
 
 @ApiTags('product(작품등록)')
 @Controller('product')
@@ -136,6 +138,20 @@ export class ProductController {
     return res.status(200).send('success');
   }
 
+  @Delete('/:productId/cart')
+  @ApiOperation({ summary: '찜한 작품삭제'})
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN })
+  async deleteWishProduct(
+    @GetUser() user: User,
+    @Res() res: Response,
+    @Param('productId', ParseIntPipe) id: number
+  ):Promise<any> {
+   await this.productService.deleteWishProduct(id, user);
+   return res.status(200).send('OK');
+  }
+
   @Get('/search')
   @ApiImplicitQuery({ name: 'q', type: 'string' })
   @ApiImplicitQuery({ name: 'page', type: 'string' })
@@ -161,7 +177,6 @@ export class ProductController {
 
   @Post('/')
   async test(@Body() data: string) {
-    console.log(data['data']);
     const comment = '중앙';
     const result = await this.buyerRepository
       .createQueryBuilder('buyer')
