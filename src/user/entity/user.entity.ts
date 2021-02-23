@@ -68,6 +68,6 @@ export class User {
   @OneToMany((type) => BuyerProductInfoForEdu, (product) => product.user)
   buyerProductInfoEdu: BuyerProductInfoForEdu[];
 
-  @OneToOne((tpye) => Question)
-  question;
+  @OneToMany((type) => Question, (question) => question.user)
+  questions: Question[];
 }

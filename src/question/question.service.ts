@@ -15,7 +15,7 @@ export class QuestionService {
   ) {
   }
 
-  async crateQuestion(createQuestionDto: CreateQuestionDto): Promise<Question> {
+  async crateQuestion(createQuestionDto: CreateQuestionDto) {
     const { name, email, title, phone, comment, isChecked } = createQuestionDto;
 
     try {
@@ -42,5 +42,15 @@ export class QuestionService {
       throw err;
     }
 
+  }
+
+  async getQuestion(user: User): Promise<Question[]> {
+    const { phone } = user;
+    const questionData = await this.questionRepository.find({
+      where: {
+        phone,
+      },
+    });
+    return questionData;
   }
 }
