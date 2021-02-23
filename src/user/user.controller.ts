@@ -37,12 +37,9 @@ export class UserController {
   async sendPhoneValidationNumber(
     @Param() params: SendPhoneValidationNumberDto,
   ) {
-    try {
+      // response dto 생성필요
       await this.userService.sendPhoneValidationNumber(params.phone);
       return 'OK';
-    } catch (e) {
-      throw e;
-    }
   }
 
   @Get('/phone-validation')

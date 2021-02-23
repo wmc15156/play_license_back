@@ -14,8 +14,8 @@ export class QuestionController {
   @ApiOperation({ summary: '1대1문의 작성' })
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
-  async createdQuestion(@Body(ValidationPipe) createQuestionDto: CreateQuestionDto) {
-    return await this.questionService.crateQuestion(createQuestionDto)
+   createdQuestion(@Body(ValidationPipe) createQuestionDto: CreateQuestionDto) {
+    return this.questionService.crateQuestion(createQuestionDto)
   }
 
 }

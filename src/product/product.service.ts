@@ -136,15 +136,27 @@ export class ProductService {
         where: { userId },
         relations: ['products'],
       });
+
       if (findUser[0]) {
         return findUser[0].products.map((product, i) => {
           const {
             updatedAt,
             deletedAt,
             isCheckInformation,
+            createdAt,
+            description,
+            phone,
+            selectMaterials,
+            comment,
+            performanceVideo,
+            castMembers,
+            sizeOfPerformance,
+            mainAudience,
+            genre,
+            creativeStaff,
             ...result
           } = product;
-          result.createdAt = moment(product.createdAt).format('YYYY-MM-DD');
+          console.log(result);
           return result;
         });
       } else {
@@ -277,10 +289,9 @@ export class ProductService {
       result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
         return cate.replace("목적","");
       });
-
-      return result;
+      const {brokerageConsignment, ...results } = result;
+      return results;
     });
-    console.log(data.brokerageConsignments, data);
     return data;
   }
 

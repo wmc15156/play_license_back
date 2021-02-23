@@ -15,7 +15,7 @@ export class QuestionService {
   ) {
   }
 
-  async crateQuestion(createQuestionDto: CreateQuestionDto): Promise<void> {
+  async crateQuestion(createQuestionDto: CreateQuestionDto): Promise<Question> {
     const { name, email, title, phone, comment, isChecked } = createQuestionDto;
 
     try {
@@ -23,17 +23,19 @@ export class QuestionService {
         where: { phone },
       });
 
-      await this.questionRepository.save({
+      const user = findUser ? findUser : null;
+
+      const result = await this.questionRepository.save({
         name,
         email,
         title,
         phone,
         comment,
         isChecked,
-        user: findUser ? findUser : null,
+        user,
       });
 
-      return;
+      return result;
 
     } catch (err) {
       console.error(err);

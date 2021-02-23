@@ -136,7 +136,7 @@ export class UserService {
           phone,
         },
       });
-
+      // update 사용
       if (phoneNumberExist) {
         await this.phoneValidationRepository.remove(phoneNumberExist);
       }
@@ -151,8 +151,8 @@ export class UserService {
         `안녕하세요. 플레이 라이센스 본인인증 번호는 [${randomValidationNumber}] 입니다. `,
       );
     } catch (err) {
-      throw err;
       console.error(err);
+      throw err;
     }
   }
 

@@ -115,13 +115,15 @@ export class ProductController {
 
 
   @Get('/cart')
+
   @ApiOperation({ summary: '사용자가 찜한 데이터 가져오기' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 403, description: 'not exist product' })
   async getItem(@GetUser() user: User, @Res() res: Response) {
     const products = await this.productService.getItem(user);
-    return res.status(200).json(products);
+    const result = await this.productService.convertProductsData(products);
+    return res.status(200).json(result);
   }
 
   @Post('/:productId/add-item')
