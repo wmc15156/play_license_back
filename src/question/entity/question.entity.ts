@@ -47,6 +47,12 @@ export class Question {
   })
   isChecked: boolean;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  adminCheck: boolean;
+
   @CreateDateColumn()
   createdAt: Date | string
 
