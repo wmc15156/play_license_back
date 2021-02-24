@@ -61,6 +61,29 @@ export class QuestionService {
       return result;
     });
 
+
+
     return questions;
+  }
+
+  async getOneQuestion(user: User, id: number): Promise<any> {
+    const oneQuestionData = await this.questionRepository.findOne(id);
+
+    const { updatedAt, deletedAt, ...result } = oneQuestionData;
+    return result;
+  }
+
+  async modifyQuestion(user: User, createQuestionDto: CreateQuestionDto ,id: number) {
+    const oneQuestionData = await this.questionRepository.findOne(id);
+    oneQuestionData.email = createQuestionDto.email;
+    oneQuestionData.phone = createQuestionDto.phone;
+    oneQuestionData.name = createQuestionDto.name;
+    oneQuestionData.comment = createQuestionDto.comment;
+    oneQuestionData.title = createQuestionDto.title;
+    oneQuestionData.updatedAt = new Date();
+    const changedData = await this.questionRepository.save(oneQuestionData)
+    changedData.createdAt = changeDateFormat(changedData.createdAt);
+    const { updatedAt, deletedAt, ...result } = changedData;
+    return result;
   }
 }
