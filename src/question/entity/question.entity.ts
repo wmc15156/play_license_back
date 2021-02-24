@@ -1,4 +1,13 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn, DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 
 @Entity({
@@ -37,6 +46,15 @@ export class Question {
     type: 'boolean'
   })
   isChecked: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date | string
+
+  @UpdateDateColumn()
+  updatedAt: Date | string
+
+  @DeleteDateColumn()
+  deletedAt: Date | string
 
   @ManyToOne((type) => User, (user) => user.questions)
   user: User;

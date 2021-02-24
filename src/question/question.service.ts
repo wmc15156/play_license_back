@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { User } from '../user/entity/user.entity';
+import changeDateFormat from '../utils/chagneDate';
 
 @Injectable()
 export class QuestionService {
@@ -32,6 +33,8 @@ export class QuestionService {
         phone,
         comment,
         isChecked,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         user,
       });
 
@@ -44,13 +47,20 @@ export class QuestionService {
 
   }
 
-  async getQuestion(user: User): Promise<Question[]> {
+  async getQuestion(user: User): Promise<any> {
     const { phone } = user;
     const questionData = await this.questionRepository.find({
       where: {
         phone,
       },
     });
-    return questionData;
+
+    const questions = questionData.map((data) => {
+      data.createdAt = changeDateFormat(data.createdAt);
+      const { updatedAt, deletedAt, ...result } = data;
+      return result;
+    });
+
+    return questions;
   }
 }
