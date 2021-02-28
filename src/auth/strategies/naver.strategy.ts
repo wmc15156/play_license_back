@@ -14,7 +14,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     super({
       clientID: dotenvConfigService.get('NAVER_CLIENT_ID'),
       clientSecret: dotenvConfigService.get('NAVER_CLIENT_SECRET'),
-      callbackURL: `${dotenvConfigService.get('URL')}/api/auth/naver/callback`,
+      callbackURL: `${dotenvConfigService.get('CALLBACKURL')}/api/auth/naver/callback`,
     });
   }
 

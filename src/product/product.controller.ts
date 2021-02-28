@@ -41,6 +41,7 @@ export class ProductController {
     private readonly buyerRepository: Repository<BuyerProductInfo>,
   ) {}
 
+
   @Post('/provider')
   @ApiOperation({ summary: '공급자 작품등록' })
   @Roles(RoleEnum.PROVIDER)

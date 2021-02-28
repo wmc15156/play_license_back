@@ -156,6 +156,7 @@ export class AuthController {
   @UseGuards(AuthGuard('naver'))
   @ApiOperation({ summary: '네이버에서 호출되는 콜백' })
   async naverCallback(@Req() req: Request, @Res() res: Response) {
+    console.log('here');
     return await this.handleOAuthCallback(req, res);
   }
 
@@ -178,13 +179,13 @@ export class AuthController {
   }
 
   @Post('/logout')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '사용자 로그아웃' })
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized user' })
   async logout(@Res() res: Response) {
     res.clearCookie('authtoken');
-    return res.status(200).json({ success: true });
+    return res.status(200).send();
   }
 
   @Delete('/unregister')
@@ -250,8 +251,8 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse( { status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
-  async isLogin() {
-    return;
+  async isLogin(@Res() res: Response) {
+    return res.status(200).send(true);
   }
 
 
@@ -260,8 +261,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 
@@ -270,8 +271,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 

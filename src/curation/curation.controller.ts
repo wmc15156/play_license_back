@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -36,6 +36,15 @@ export class CurationController {
     @InjectRepository(CurationInfo)
     private readonly curationRepository: Repository<CurationInfo>
   ) {}
+
+  @Get('/product')
+  @ApiOperation({ summary: '메인페이지에 작품 전송'})
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async getCurations(@Res() res: Response) {
+    const data = await this.curationService.getCurations();
+    return res.status(200).json(data);
+  }
 
   @Post('/:curationName')
   @ApiOperation({ summary: '큐레이션 등록'})

@@ -9,6 +9,7 @@ import { UserService } from '../user/user.service';
 import { User } from '../user/entity/user.entity';
 import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
+import { ProductRepository } from './product.repository';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
       User,
       BuyerProductInfo,
       BuyerProductInfoForEdu,
+      ProductRepository
     ]),
   ],
   controllers: [ProductController],

@@ -18,6 +18,7 @@ import {
 } from './entity/BuyerProductInfo.entity';
 import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
+import { ProductRepository } from './product.repository';
 
 export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
@@ -34,6 +35,8 @@ export class ProductService {
   constructor(
     @InjectRepository(ProviderProductInfo)
     private readonly productRepository: Repository<ProviderProductInfo>,
+    @InjectRepository(ProductRepository)
+    private readonly productRepo: ProductRepository,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(BuyerProductInfo)
@@ -336,4 +339,6 @@ export class ProductService {
     await this.productRepository.save(product);
     return;
   }
+
+
 }
