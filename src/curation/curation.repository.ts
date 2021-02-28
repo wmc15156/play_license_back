@@ -10,7 +10,17 @@ export class CurationRepository extends Repository<CurationInfo> {
 
     const values =  await this.createQueryBuilder("curation")
       .leftJoinAndSelect("curation.productInfo", "product")
-      .select(["product.title", "product.poster", "curation.curationName", "curation.image", "product.productId"])
+      .select([
+        "product.title",
+        "product.poster",
+        "curation.curationName",
+        "curation.image",
+        "product.productId",
+        "product.company",
+        "product.category",
+        "product.year",
+        "product.brokerageConsignment",
+      ])
       .execute()
 
     return values;

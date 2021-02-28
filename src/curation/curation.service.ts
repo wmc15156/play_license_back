@@ -121,6 +121,10 @@ export class CurationService {
               productTitle: cu.product_title,
               productImage: cu.product_poster,
               productId: cu.product_productId,
+              productCompany: cu.product_company,
+              productYear: cu.product_year,
+              productCate: cu.product_category,
+              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
             }
           )
         } else {
@@ -128,7 +132,11 @@ export class CurationService {
             { curationImage: cu.curation_image,
               productTitle: cu.product_title,
               productImage: cu.product_poster,
-              productId: cu.product_productId
+              productId: cu.product_productId,
+              productCompany: cu.product_company,
+              productYear: cu.product_year,
+              productCate: cu.product_category,
+              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
             }
           )
         }
@@ -140,7 +148,11 @@ export class CurationService {
               curationImage: cu.curation_image,
               productTitle: cu.product_title,
               productImage: cu.product_poster,
-              productId: cu.product_productId
+              productId: cu.product_productId,
+              productCompany: cu.product_company,
+              productYear: cu.product_year,
+              productCate: cu.product_category,
+              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
             }
           );
         } else {
@@ -148,7 +160,11 @@ export class CurationService {
             { curationImage: cu.curation_image,
               productTitle: cu.product_title,
               productImage: cu.product_poster,
-              productId: cu.product_productId
+              productId: cu.product_productId,
+              productCompany: cu.product_company,
+              productYear: cu.product_year,
+              productCate: cu.product_category,
+              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
             }
           );
         }
