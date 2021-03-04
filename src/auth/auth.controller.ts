@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get, HttpStatus,
-  Logger,
+  Logger, Param,
   Post,
   Req,
   Res, UnauthorizedException,
@@ -68,7 +69,6 @@ export class AuthController {
         req.signedCookies['Oauthtoken'],
         this.dotenvConfigService.get('JWT_SECRET_KEY'),
       );
-      console.log('decode');
       if (decoded) {
         switch (decoded['provider']) {
           case 'google':
@@ -84,7 +84,6 @@ export class AuthController {
       }
       oauthId = decoded['oauthId'];
     }
-    console.log(3);
     const createdUser = await this.authService.signUp(createUserDto, oauthId);
 
     // const jwtToken = await this.authService.createUserToken(
@@ -256,13 +255,15 @@ export class AuthController {
   }
 
 
+
+
   setUserTokenToCookie(res: Response, token: string) {
     res.cookie('authtoken', token, {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 
@@ -271,8 +272,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 

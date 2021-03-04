@@ -26,6 +26,7 @@ import { EmailService } from '../email/email.service';
 import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 import { RolesEnum } from '../auth/enum/Roles.enum';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
+import { UserRepo } from './user.repository';
 
 @Injectable()
 export class UserService {
@@ -38,6 +39,8 @@ export class UserService {
     private readonly phoneValidationRepository: Repository<PhoneValidation>,
     @InjectRepository(ProviderAccount)
     private readonly providerAccountRepository: Repository<ProviderAccount>,
+    @InjectRepository(UserRepo)
+    private readonly userRepo: UserRepo,
 
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
@@ -291,7 +294,7 @@ export class UserService {
           <br/>
         
           <img
-            src="https://user-images.githubusercontent.com/60249156/105002072-116d1600-5a74-11eb-90fd-2028db9ad89b.png"
+            src="https://user-images.githubusercontent.com/60249156/109866502-b2bcce00-7ca8-11eb-860f-6474447185d4.png"
             style="display: block; margin: 0 auto; width: 200px; height: auto;"
             width="300px"
           />
@@ -311,9 +314,11 @@ export class UserService {
               <span>임시 비밀번호로 로그인 하신 후,<br/> 비밀번호를 변경하시기 바랍니다.</span>
             </div>
             
-            <div class="test" style="margin: 32px auto 8px auto; center; display: block; width: 200px; height: 50px; border-radius: 50px; 
-                  background-color: #f783ac; text-align: center">
-              <span style="color: white; font-size: 16px; font-weight: bold; line-height: 50px">로그인하러가기</span>
+            <div class="test" style="margin: 32px auto 8px auto; display: flex; width: 200px; height: 50px; border-radius: 50px; 
+                  background-color: #FF6B39; justify-content: center; align-items: center;" >
+              <a href='https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/login' 
+              style="color: white; font-size: 16px; font-weight: bold; line-height: 50px; text-decoration: none">
+              로그인하러가기</a>
             </div>
           </div>
           
@@ -442,4 +447,22 @@ export class UserService {
       throw err;
     }
   }
+
+  checkNull(email: [string]) {
+    if (typeof email === "undefined" || email === null || email[0] === "") {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async findEmail(phone: string):Promise<any> {
+    const data:User = await this.userRepo.findEmail(phone);
+    let { email } = data;
+
+    const len = email.split('@')[0].length - 4;
+    email = email.replace(new RegExp('.(?=.{0,' + len + '}@)', 'g'), '*');
+    return email;
+  }
+
 }

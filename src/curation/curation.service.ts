@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CurationInfo } from './entity/CurationInfo.entity';
 import { Repository } from 'typeorm';
@@ -7,7 +7,6 @@ import { ProviderProductInfo } from '../product/entity/ProductInfo.entity';
 import { Curation } from './interface/curation.interface';
 import { CurationRepository } from './curation.repository';
 import { ProductRepository } from '../product/product.repository';
-
 
 
 @Injectable()
@@ -26,13 +25,6 @@ export class CurationService {
   async createCuration(createCurationDto: CreateCurationDto, curationName: string) {
     const { uniqueId, kinds, order, expose, image, productTitle } = createCurationDto;
     try {
-      // const findCuration = await this.curationRepository.findOne({
-      //   where: { curationName }
-      // });
-      //
-      // if(findCuration) {
-      //   throw new ConflictException('ALREADY_EXIST_CURATION_NAME');
-      // }
 
       const created = await Promise.all(productTitle.map((title) => {
         const data =  this.providerProductRepository.findOne({
@@ -107,70 +99,30 @@ export class CurationService {
 
   async getCurations(): Promise<any> {
     const curationData = await this.curationRepo.getCurations();
-    const checkCuration = ['new', 'coming', 'hot'];
-    const resultData = {special: {}};
 
-    console.log(curationData);
-
-    curationData.forEach((cu) => {
-      if(!(checkCuration.includes(cu.curation_curationName))){
-        if(!(cu.curation_curationName in resultData.special)) {
-          resultData.special[cu.curation_curationName] = [];
-          resultData.special[cu.curation_curationName].push(
-            { curationImage: cu.curation_image,
-              productTitle: cu.product_title,
-              productImage: cu.product_poster,
-              productId: cu.product_productId,
-              productCompany: cu.product_company,
-              productYear: cu.product_year,
-              productCate: cu.product_category,
-              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
-            }
-          )
-        } else {
-          resultData.special[cu.curation_curationName].push(
-            { curationImage: cu.curation_image,
-              productTitle: cu.product_title,
-              productImage: cu.product_poster,
-              productId: cu.product_productId,
-              productCompany: cu.product_company,
-              productYear: cu.product_year,
-              productCate: cu.product_category,
-              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
-            }
-          )
-        }
-      } else {
-        if(!(cu.curation_curationName in resultData)) {
-          resultData[cu.curation_curationName] = [];
-          resultData[cu.curation_curationName].push(
-            {
-              curationImage: cu.curation_image,
-              productTitle: cu.product_title,
-              productImage: cu.product_poster,
-              productId: cu.product_productId,
-              productCompany: cu.product_company,
-              productYear: cu.product_year,
-              productCate: cu.product_category,
-              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
-            }
-          );
-        } else {
-          resultData[cu.curation_curationName].push(
-            { curationImage: cu.curation_image,
-              productTitle: cu.product_title,
-              productImage: cu.product_poster,
-              productId: cu.product_productId,
-              productCompany: cu.product_company,
-              productYear: cu.product_year,
-              productCate: cu.product_category,
-              productBrokerageConsignment: cu.product_brokerageConsignment.split(',')
-            }
-          );
-        }
+    return curationData.reduce((pre, cur) => {
+      let target = !['new', 'coming', 'hot'].includes(cur.curation_curationName) ? pre.special[cur.curation_curationName] : pre[cur.curation_curationName];
+      if (!target) {
+        pre.special[cur.curation_curationName] = [];
+        target = pre.special[cur.curation_curationName];
       }
+
+      target.push(
+        {
+          curationImage: cur.curation_image,
+          productTitle: cur.product_title,
+          productImage: cur.product_poster,
+          productId: cur.product_productId,
+          productCompany: cur.product_company,
+          productYear: cur.product_year,
+          productCate: cur.product_category,
+          productBrokerageConsignment: cur.product_brokerageConsignment.split(',')
+        }
+      )
+      return pre;
+    }, {
+      new: [], coming: [], hot: [], special: {}
     });
-    return resultData;
   }
 
 }

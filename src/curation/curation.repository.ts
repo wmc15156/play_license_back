@@ -20,6 +20,7 @@ export class CurationRepository extends Repository<CurationInfo> {
         "product.category",
         "product.year",
         "product.brokerageConsignment",
+        "product"
       ])
       .execute()
 

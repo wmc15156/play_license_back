@@ -340,5 +340,9 @@ export class ProductService {
     return;
   }
 
+  getProduct(title: string):Promise<ProviderProductInfo> {
+    const product = this.productRepo.getProduct(title);
+    return product;
+  }
 
 }

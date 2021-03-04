@@ -113,6 +113,9 @@ export class ProviderProductInfo {
   @Column()
   progress: ProgressEnum;
 
+  @Column({ default: 0 })
+  views: number;
+
   @CreateDateColumn()
   createdAt: Date | string;
 

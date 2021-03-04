@@ -14,12 +14,13 @@ export class SmsService {
         Message: msg,
         PhoneNumber: ph.getNumber('e164'),
       };
-
+      console.log('123');
       return await this.awsService
         .getSNS()
         .publish(params)
         .promise()
         .then((result) => {
+          console.log(result);
           this.logger.log(`SMS sended to ${params.PhoneNumber} , msg: ${msg}`);
           return result;
         })

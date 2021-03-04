@@ -42,6 +42,15 @@ export class ProductController {
   ) {}
 
 
+  @Get('/info/:productId')
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  @ApiOperation({ summary: '해당 작품 정보전송' })
+  getProduct(@Param('productId') title) {
+    console.log('here');
+    return this.productService.getProduct(title);
+  }
+
   @Post('/provider')
   @ApiOperation({ summary: '공급자 작품등록' })
   @Roles(RoleEnum.PROVIDER)

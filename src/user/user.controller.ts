@@ -1,7 +1,8 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Get,
+  Get, HttpStatus,
   Logger,
   NotFoundException,
   Param,
@@ -38,6 +39,7 @@ export class UserController {
     @Param() params: SendPhoneValidationNumberDto,
   ) {
       // response dto 생성필요
+      console.log('here');
       await this.userService.sendPhoneValidationNumber(params.phone);
       return 'OK';
   }
@@ -89,5 +91,23 @@ export class UserController {
 
     const updatedUser = await this.userService.updateUser(user, updateUserDto);
     return res.status(200).json({ success: true, data: updatedUser });
+  }
+
+  @Get('/find/:phone')
+  @ApiOperation({ summary: 'email 찾기'})
+  @ApiResponse({ status : HttpStatus.OK })
+  @ApiResponse( { status: HttpStatus.BAD_REQUEST, type: BadRequestException })
+  async findEmail(@Param() phoneNumber: {phone: string}) {
+    const { phone } = phoneNumber;
+    return this.userService.findEmail(phone);
+  }
+
+  @Get('/me')
+  @ApiOperation({ summary: '로그인 여부'})
+  @ApiResponse({ status : HttpStatus.OK })
+
+  async me(@Req() req:Response, @Res() res:Response) {
+    const isLogin = !!req['signedCookies']['authtoken'];
+    return res.status(200).send(isLogin);
   }
 }

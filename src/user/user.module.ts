@@ -10,14 +10,16 @@ import { DotenvModule } from '../dotenv/dotenv.module';
 import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
+import { UserRepo } from './user.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PhoneValidation, ProviderAccount]),
+    TypeOrmModule.forFeature([User, PhoneValidation, ProviderAccount, UserRepo]),
     SmsModule,
     RolesModule,
     DotenvModule,
     EmailModule,
+
   ],
   controllers: [UserController],
   providers: [UserService],
