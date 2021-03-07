@@ -17,4 +17,8 @@ export class UserRepo extends Repository<User> {
     return data;
   }
 
+  async findUserForId(id: number) {
+     return this.findOne(id);
+  }
+
 }

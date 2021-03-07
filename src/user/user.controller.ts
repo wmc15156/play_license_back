@@ -24,6 +24,7 @@ import { FindByEmailQuery } from './queries/FindByPhone';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 import { User } from './entity/user.entity';
+import { GetUser } from '../decorator/create-user.decorator';
 
 @ApiTags('user')
 @Controller('user')
@@ -109,5 +110,16 @@ export class UserController {
   async me(@Req() req:Response, @Res() res:Response) {
     const isLogin = !!req['signedCookies']['authtoken'];
     return res.status(200).send(isLogin);
+  }
+
+  @Get('/check/password/:password')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '사용자 비밀번호 확인'})
+  @ApiResponse({ status : HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async checkPassword(@GetUser() user, @Param() pw: { password: string }) {
+    const { password } = pw;
+    console.log(user);
+    return this.userService.checkPassword(user, password);
   }
 }

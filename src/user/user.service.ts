@@ -65,7 +65,7 @@ export class UserService {
           deletedAt: null,
         },
       });
-      console.log('---------0---------')
+
       if (isEmailDuplicated) {
         throw new ConflictException('EMAIL_DUPLICATED');
       }
@@ -78,11 +78,11 @@ export class UserService {
       ) {
         throw new BadRequestException('MISSING_PASSWD');
       }
-      console.log('---------1---------')
+
       if(createUserDto.password) {
         hashedPassword = await this.hashPassword(createUserDto.password);
       }
-      console.log('---------2---------')
+
       const userInfo = createUserDto;
       if (createUserDto.role === RolesEnum.USER) {
         userRole = await this.roleService.getRole(RoleEnum.USER);
@@ -446,6 +446,12 @@ export class UserService {
       console.error('error', err);
       throw err;
     }
+  }
+
+  async checkPassword(user: User, password: string) {
+    const findUser = await this.userRepo.findUserForId(user.userId);
+    console.log(password, findUser);
+    return await bcrypt.compare(password, findUser.password);
   }
 
   checkNull(email: [string]) {

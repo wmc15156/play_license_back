@@ -262,8 +262,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      // secure: true,
+      // sameSite: 'none',
     });
   }
 
@@ -272,8 +272,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      // secure: true,
+      // sameSite: 'none',
     });
   }
 
