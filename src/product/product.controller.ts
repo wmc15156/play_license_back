@@ -46,9 +46,8 @@ export class ProductController {
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   @ApiOperation({ summary: '해당 작품 정보전송' })
-  getProduct(@Param('productId') title) {
-    console.log('here');
-    return this.productService.getProduct(title);
+  getProduct(@Param('productId', ParseIntPipe) id:number) {
+    return this.productService.getProduct(id);
   }
 
   @Post('/provider')
@@ -125,7 +124,6 @@ export class ProductController {
 
 
   @Get('/cart')
-
   @ApiOperation({ summary: '사용자가 찜한 데이터 가져오기' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 200, description: 'success' })

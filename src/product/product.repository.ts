@@ -16,16 +16,22 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
    return products;
   }
 
-  async getProduct(title: string):Promise<ProviderProductInfo> {
-    const product = await this.findOne({
-      title
-    });
+  async getProduct(id: number):Promise<ProviderProductInfo> {
+    const product = await this.findOne(id);
     if(!product) {
       throw new BadRequestException('no exist product');
     }
     product.views += 1;
     const result = await this.save(product);
     return result
+  }
+
+  async totalProduct(page: number) {
+    console.log(123);
+    return await this.findAndCount({
+      take: 10,
+      skip: page,
+    });
   }
 
 }

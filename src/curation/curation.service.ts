@@ -7,6 +7,7 @@ import { ProviderProductInfo } from '../product/entity/ProductInfo.entity';
 import { Curation } from './interface/curation.interface';
 import { CurationRepository } from './curation.repository';
 import { ProductRepository } from '../product/product.repository';
+import { ProviderProduct } from '../product/product.service';
 
 
 @Injectable()
@@ -54,17 +55,6 @@ export class CurationService {
         });
       }));
 
-
-      // await this.curationRepository.save({
-      //   curationName,
-      //   uniqueId,
-      //   kinds,
-      //   expose,
-      //   order,
-      //   image: image ? image : null,
-      //   productInfo: created ? created : null,
-      // });
-
       return;
 
     } catch(err) {
@@ -99,7 +89,6 @@ export class CurationService {
 
   async getCurations(): Promise<any> {
     const curationData = await this.curationRepo.getCurations();
-
     return curationData.reduce((pre, cur) => {
       let target = !['new', 'coming', 'hot'].includes(cur.curation_curationName) ? pre.special[cur.curation_curationName] : pre[cur.curation_curationName];
       if (!target) {
@@ -125,4 +114,36 @@ export class CurationService {
     });
   }
 
+  convertProductInfo(data: any, skip=true) {
+      return data.map((cur) => {
+        if(skip) {
+          const { curationId, curationName, uniqueId, kinds, expose, order, image, ...result } = cur;
+          result.productInfo[0].brokerageConsignments =  result.productInfo[0].brokerageConsignment.split(',');
+          result.productInfo[0].brokerageConsignments = result.productInfo[0].brokerageConsignments.map((cate) => {
+            return cate.replace("목적","");
+          });
+          const {brokerageConsignment, ...results } = result.productInfo[0];
+          return results;
+        } else {
+          cur.brokerageConsignments =  cur.brokerageConsignment.split(',');
+          cur.brokerageConsignments = cur.brokerageConsignments.map((cate) => {
+            return cate.replace("목적","");
+          });
+          const {brokerageConsignment, ...results } = cur;
+          return results;
+        }
+      })
+  }
+
+  async filterCurationInfo(title: string, page: number):Promise<any> {
+    page = (page - 1) * 10;
+    if(title === '모든작품' || title === "") {
+      const [convertedData , count] =  await this.productRepo.totalProduct(page);
+      const result = this.convertProductInfo(convertedData, false);
+      return { result, count }
+    }
+    const [convertedData, count] = await this.curationRepo.filterCurations(title, page);
+    const result = this.convertProductInfo(convertedData);
+    return { result, count};
+  }
 }

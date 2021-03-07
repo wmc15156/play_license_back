@@ -1,5 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { CurationInfo } from './entity/CurationInfo.entity';
+import { createEvalAwarePartialHost } from 'ts-node/dist/repl';
 
 @EntityRepository(CurationInfo)
 export class CurationRepository extends Repository<CurationInfo> {
@@ -22,9 +23,25 @@ export class CurationRepository extends Repository<CurationInfo> {
         "product.brokerageConsignment",
         "product"
       ])
-      .execute()
 
+      .execute()
     return values;
+  }
+
+  async filterCurations(title: string, page: number) {
+    // return await this.createQueryBuilder('curation')
+    //   .leftJoinAndSelect('curation.productInfo', 'productInfo')
+    //   .skip(page)
+    //   .take(10)
+    //   .orderBy('curation.curationId', 'ASC')
+    //   .where('curation.curationName = :title', { title })
+    //   .getMany();
+    return this.findAndCount({
+      relations:['productInfo'],
+      where: { curationName: title},
+      take: 10,
+      skip: page,
+    })
   }
 
 }

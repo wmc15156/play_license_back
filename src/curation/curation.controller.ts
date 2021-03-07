@@ -81,4 +81,13 @@ export class CurationController {
     return res.status(200).json({ count, curationInfo })
   }
 
+  @Get('/filter')
+  @ApiOperation({ summary: '마켓 페이지 큐레이션 필터링'})
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  filterCurationInfo(@Query('q') q: string, @Query('page',ParseIntPipe) page: number) {
+    console.log(q, page, 'sdasd');
+    return this.curationService.filterCurationInfo(q, page);
+  }
+
 }
