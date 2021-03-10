@@ -14,6 +14,7 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
@@ -119,7 +120,6 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async checkPassword(@GetUser() user, @Param() pw: { password: string }) {
     const { password } = pw;
-    console.log(user);
     return this.userService.checkPassword(user, password);
   }
 }

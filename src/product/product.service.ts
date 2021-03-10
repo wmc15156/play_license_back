@@ -178,21 +178,21 @@ export class ProductService {
     const { userId } = user;
     try {
       const findUser = await this.userRepository.findOne(userId);
-
+      const convertToString = JSON.stringify(createProductByUserDto.planDocument);
       const buyerProduct = await this.buyerProductRepository.save({
         groupName: createProductByUserDto.groupName,
         introduction: createProductByUserDto.introduction,
         planDocument: createProductByUserDto.planDocument,
         round: createProductByUserDto.round,
         place: createProductByUserDto.place,
-        plan: createProductByUserDto.plan,
+        plan: JSON.stringify(createProductByUserDto.plan),
         price: createProductByUserDto.price,
         isChangedScenario: createProductByUserDto.isChangedScenario,
-        changedRange: createProductByUserDto.changedRange,
+        changedRange: JSON.stringify(createProductByUserDto.changedRange),
         requiredMaterials:
           Array.isArray(createProductByUserDto.requiredMaterials) &&
           createProductByUserDto.requiredMaterials.join(','),
-        selectedMaterials: createProductByUserDto.selectedMaterials,
+        selectedMaterials: JSON.stringify(createProductByUserDto.selectedMaterials),
         participant: createProductByUserDto.participant,
         name: createProductByUserDto.name,
         phone: createProductByUserDto.phone,

@@ -22,7 +22,7 @@ export class CreateProductByBuyerDto {
     description: '기획내용',
   })
   @IsNotEmpty()
-  planDocument: string;
+  planDocument: object;
 
   @ApiModelProperty({
     example: {
@@ -32,7 +32,7 @@ export class CreateProductByBuyerDto {
     description: '공연일정',
   })
   @IsNotEmpty()
-  plan: object;
+  plan: object[];
 
   @ApiModelProperty({
     example: '5회',
@@ -63,11 +63,11 @@ export class CreateProductByBuyerDto {
   isChangedScenario: string;
 
   @ApiModelProperty({
-    example: '대사',
+    example: ['대사'],
     description: '각색범위',
   })
   @IsNotEmpty()
-  changedRange: string;
+  changedRange: string[];
 
   @ApiModelProperty({
     example: ['대본', '보컬악보'],
@@ -77,11 +77,11 @@ export class CreateProductByBuyerDto {
   requiredMaterials: Array<string> | string;
 
   @ApiModelProperty({
-    example: 'selectedMaterials: {selectedMaterials: [공연MR, 연습MR]}',
-    description: '필요자료(선택자료들 중), type: json',
+    example: ['총보(라이브 연주 가능 악보', '기타'],
+    description: '필요자료(선택자료들 중)',
   })
   @IsNotEmpty()
-  selectedMaterials: object;
+  selectedMaterials: string[];
 
   @ApiModelProperty({
     example: { actor: '12명', staff: '21명' },

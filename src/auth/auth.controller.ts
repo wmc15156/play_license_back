@@ -11,10 +11,10 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-
 import { CreateUserDto } from '../user/dto/CreateUser.dto';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
@@ -34,8 +34,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProviderAccount } from './entity/providerAccount.entity';
 import { Repository } from 'typeorm';
 import { DuplicateEmailDto } from './dto/duplicateEmail.dto';
-import { RolesEnum } from './enum/Roles.enum';
-import { constants } from 'http2';
 
 
 @ApiTags('auth(인증)')
@@ -155,7 +153,6 @@ export class AuthController {
   @UseGuards(AuthGuard('naver'))
   @ApiOperation({ summary: '네이버에서 호출되는 콜백' })
   async naverCallback(@Req() req: Request, @Res() res: Response) {
-    console.log('here');
     return await this.handleOAuthCallback(req, res);
   }
 

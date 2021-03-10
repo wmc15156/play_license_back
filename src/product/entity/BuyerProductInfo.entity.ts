@@ -28,13 +28,11 @@ export class BuyerProductInfo {
   @Column({ type: 'text' })
   introduction: string;
 
+  @Column({ type: 'json'})
+  planDocument: object;
+
   @Column()
-  planDocument: string;
-
-  //
-
-  @Column({ type: 'json' })
-  plan: object;
+  plan: string;
 
   @Column()
   round: string;
@@ -54,8 +52,8 @@ export class BuyerProductInfo {
   @Column()
   requiredMaterials: string;
 
-  @Column({ type: 'json' })
-  selectedMaterials: object;
+  @Column()
+  selectedMaterials: string;
 
   @Column({ type: 'json' })
   participant: object;
