@@ -1,7 +1,16 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateProductByUserForEducationalDto {
+
+  @ApiModelProperty({
+    example: 1,
+    description: '해당 작품 Id',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  productId: number;
+
   @ApiModelProperty({
     example: '올림푸스',
     description: '단체이름',

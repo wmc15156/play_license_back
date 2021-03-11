@@ -176,8 +176,13 @@ export class ProductService {
     createProductByUserDto: CreateProductByBuyerDto,
   ) {
     const { userId } = user;
+    const { productId } = createProductByUserDto;
     try {
       const findUser = await this.userRepository.findOne(userId);
+      const product = await this.productRepo.findOne(productId);
+      if(!product) {
+        throw new BadRequestException('no exist productId');
+      }
       const convertToString = JSON.stringify(createProductByUserDto.planDocument);
       const buyerProduct = await this.buyerProductRepository.save({
         groupName: createProductByUserDto.groupName,
@@ -199,6 +204,7 @@ export class ProductService {
         comment: createProductByUserDto.comment,
         progress: BuyerProgressEnum.REVIEW_ADMIN,
         user: findUser,
+        product
       });
 
       return buyerProduct;
@@ -220,8 +226,13 @@ export class ProductService {
     createProductByUserForEducationalDto: CreateProductByUserForEducationalDto,
   ) {
     const { userId } = user;
+    const { productId } = createProductByUserForEducationalDto;
     try {
       const findUser = await this.userRepository.findOne(userId);
+      const product = await this.productRepo.findOne(productId);
+      if(!product) {
+        throw new BadRequestException('no exist productId');
+      }
       const created = await this.buyerProductInfoForEduRepository.save({
         groupName: createProductByUserForEducationalDto.groupName,
         introduction: createProductByUserForEducationalDto.introduction,
@@ -242,6 +253,7 @@ export class ProductService {
         createdAt: new Date(),
         updatedAt: new Date(),
         user: findUser,
+        product,
       });
 
       return created;

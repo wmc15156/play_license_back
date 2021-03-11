@@ -1,6 +1,12 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { ProviderProductInfo } from './entity/ProductInfo.entity';
 import { BadRequestException } from '@nestjs/common';
+import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
+import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
+
+export class CountProduct extends ProviderProductInfo {
+  count?: number;
+}
 
 @EntityRepository(ProviderProductInfo)
 export class ProductRepository extends Repository<ProviderProductInfo> {
@@ -36,11 +42,9 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
 
   async filteredProducts(data: string):Promise<ProviderProductInfo[]> {
 
-    let bufferData:ProviderProductInfo[] | null = null;
-    console.log(data);
+    let bufferData:CountProduct[] | null = null;
     switch (data) {
       case 'register':
-        console.log(data);
         bufferData = await this.createQueryBuilder('product')
           .orderBy('product.year')
           .getMany()
@@ -49,6 +53,21 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
         bufferData = await this.createQueryBuilder('product')
           .orderBy('product.createdAt')
           .getMany()
+          break;
+
+      case 'inquiry':
+        bufferData = await this.createQueryBuilder('product')
+          .leftJoinAndSelect('product.buyerProducts', 'buyerProducts')
+          .leftJoinAndSelect('product.buyerProductForEducation', 'education')
+          .getMany()
+        bufferData.map((product) => {
+          product.count = product.buyerProducts.length;
+          product.count += product.buyerProductForEducation.length;
+          return product;
+        })
+        bufferData.sort((p, n) => {
+          return n.count - p.count;
+        })
     }
 
     return bufferData;
