@@ -25,7 +25,7 @@ export class BuyerProduct extends BuyerProductInfo {
 }
 
 export class ProviderProduct extends ProviderProductInfo {
-  brokerageConsignments: string | string[]
+  brokerageConsignments?: string | string[]
 }
 
 export const limit = 20;
@@ -340,9 +340,15 @@ export class ProductService {
     return;
   }
 
-  getProduct(id: number):Promise<ProviderProductInfo> {
-    const product = this.productRepo.getProduct(id);
-    return product;
+  async getProduct(id: number):Promise<any> {
+    const product:ProviderProduct = await this.productRepo.getProduct(id);
+    const { updatedAt, deletedAt,...result } = product;
+    result.brokerageConsignments = result.brokerageConsignment.split(',');
+    result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
+      return cate.replace("목적","");
+    });
+    const { brokerageConsignment, ...results } = result;
+    return results;
   }
 
 }
