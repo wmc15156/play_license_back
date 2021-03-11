@@ -26,6 +26,7 @@ export class BuyerProduct extends BuyerProductInfo {
 
 export class ProviderProduct extends ProviderProductInfo {
   brokerageConsignments?: string | string[]
+  count?: number;
 }
 
 export const limit = 20;
@@ -363,10 +364,24 @@ export class ProductService {
     return results;
   }
 
-  async filterSelectData(data: string) {
+  async filterSelectData(data: string): Promise<any> {
     const allProductData = await this.productRepo.filteredProducts(data);
-    console.log(allProductData);
-    return allProductData;
+    const result = this.filteredProductData(allProductData);
+    return result;
+  }
+
+  async filteredProductData(productArr: ProviderProductInfo[]) {
+    const data =  productArr.map((item) => {
+      const { updatedAt, deletedAt, castMembers, changeScenario,...data } = item;
+      const result: ProviderProduct = item
+      result.brokerageConsignments = result.brokerageConsignment.split(',');
+      result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
+        return cate.replace("목적","");
+      });
+      const {brokerageConsignment, count, buyerProductForEducation, buyerProducts, ...results } = result;
+      return results;
+    });
+    return data;
   }
 
 }
