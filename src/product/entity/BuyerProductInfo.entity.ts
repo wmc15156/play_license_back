@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
+import { ProviderProductInfo } from './ProductInfo.entity';
 
 export enum BuyerProgressEnum {
   REVIEW_ADMIN = '관리자 검토중',
@@ -81,4 +82,8 @@ export class BuyerProductInfo {
 
   @ManyToOne((type) => User, (user) => user.buyerProductInfo)
   user: User;
+
+  @ManyToOne((type) => ProviderProductInfo, (product) => product.buyerProducts)
+  product: ProviderProductInfo;
+
 }

@@ -4,13 +4,16 @@ import {
   DeleteDateColumn,
   Entity,
   JoinTable,
-  ManyToMany, ManyToOne,
+  ManyToMany, ManyToOne, OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 import { CastMembers, CreativeStaff } from '../dto/createProduct.dto';
 import { CurationInfo } from '../../curation/entity/CurationInfo.entity';
+import { Question } from '../../question/entity/question.entity';
+import { BuyerProductInfo } from './BuyerProductInfo.entity';
+import { BuyerProductInfoForEdu } from './BuyerProductInfoForEdu.entity';
 
 
 export enum ProgressEnum {
@@ -134,4 +137,14 @@ export class ProviderProductInfo {
   @ManyToMany((type) => CurationInfo, curation => curation.productInfo)
   @JoinTable({ name: 'curation_product' })
   curations: CurationInfo;
+
+  @OneToMany((type) => Question, (question) => question.product)
+  questions: Question[]
+
+  @OneToMany((type) => BuyerProductInfo, (buyerProduct) => buyerProduct.product)
+  buyerProducts: BuyerProductInfo[]
+
+  @OneToMany((type) => BuyerProductInfoForEdu, (buyerProductForEdu) => buyerProductForEdu.product)
+  buyerProductForEducation: BuyerProductInfoForEdu[]
+
 }

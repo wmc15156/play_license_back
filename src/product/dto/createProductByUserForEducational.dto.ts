@@ -19,12 +19,11 @@ export class CreateProductByUserForEducationalDto {
   introduction: string;
 
   @ApiModelProperty({
-    example: '교육자료개발',
+    example: {0: "교육자료 개발"},
     description: '활용목적',
   })
-  @IsString()
   @IsNotEmpty()
-  objective: string;
+  objective: object;
 
   @ApiModelProperty({
     example: 'A형(6개월)',
@@ -35,12 +34,11 @@ export class CreateProductByUserForEducationalDto {
   period: string;
 
   @ApiModelProperty({
-    example: '2020-10-20',
-    description: '이용 시작일',
+    example: [{0: { start: '2020-02-01', end: '2020-02-20'}}],
+    description: '이용 기간',
   })
-  @IsString()
   @IsNotEmpty()
-  startDate: string;
+  startDate: object[];
 
   @ApiModelProperty({
     example: ['대본', '보컬악보'],
@@ -50,11 +48,11 @@ export class CreateProductByUserForEducationalDto {
   requiredMaterials: Array<string> | string;
 
   @ApiModelProperty({
-    example: 'selectedMaterials: {selectedMaterials: [공연MR, 연습MR]}',
-    description: '필요자료(선택자료들 중), type: json',
+    example:['공연 MR', '연습 MR'],
+    description: '필요자료(선택자료들 중)',
   })
   @IsNotEmpty()
-  selectedMaterials: object;
+  selectedMaterials: string[];
 
   @ApiModelProperty({
     example: '김솔',

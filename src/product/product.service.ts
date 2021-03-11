@@ -227,13 +227,13 @@ export class ProductService {
         introduction: createProductByUserForEducationalDto.introduction,
         objective: createProductByUserForEducationalDto.objective,
         period: createProductByUserForEducationalDto.period,
-        startDate: createProductByUserForEducationalDto.startDate,
+        startDate: JSON.stringify(createProductByUserForEducationalDto.startDate),
         requiredMaterials:
           Array.isArray(
             createProductByUserForEducationalDto.requiredMaterials,
           ) && createProductByUserForEducationalDto.requiredMaterials.join(','),
         selectedMaterials:
-          createProductByUserForEducationalDto.selectedMaterials,
+          JSON.stringify(createProductByUserForEducationalDto.selectedMaterials),
         name: createProductByUserForEducationalDto.name,
         phone: createProductByUserForEducationalDto.phone,
         comment: createProductByUserForEducationalDto.comment,
@@ -349,6 +349,12 @@ export class ProductService {
     });
     const { brokerageConsignment, ...results } = result;
     return results;
+  }
+
+  async filterSelectData(data: string) {
+    const allProductData = await this.productRepo.filteredProducts(data);
+    console.log(allProductData);
+    return allProductData;
   }
 
 }

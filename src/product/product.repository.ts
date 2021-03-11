@@ -34,4 +34,24 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
     });
   }
 
+  async filteredProducts(data: string):Promise<ProviderProductInfo[]> {
+
+    let bufferData:ProviderProductInfo[] | null = null;
+    console.log(data);
+    switch (data) {
+      case 'register':
+        console.log(data);
+        bufferData = await this.createQueryBuilder('product')
+          .orderBy('product.year')
+          .getMany()
+          break;
+      case 'latest':
+        bufferData = await this.createQueryBuilder('product')
+          .orderBy('product.createdAt')
+          .getMany()
+    }
+
+    return bufferData;
+  }
+
 }

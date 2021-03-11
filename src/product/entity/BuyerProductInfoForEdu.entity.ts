@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 import { BuyerProgressEnum } from './BuyerProductInfo.entity';
+import { ProviderProductInfo } from './ProductInfo.entity';
 
 @Entity()
 export class BuyerProductInfoForEdu {
@@ -21,8 +22,8 @@ export class BuyerProductInfoForEdu {
   @Column({ type: 'text' })
   introduction: string;
 
-  @Column()
-  objective: string;
+  @Column({ type: 'json'})
+  objective: object;
 
   @Column()
   period: string;
@@ -33,20 +34,20 @@ export class BuyerProductInfoForEdu {
   @Column()
   requiredMaterials: string;
 
-  @Column({ type: 'json' })
-  selectedMaterials: object;
+  @Column()
+  comment: string;
+
+  @Column()
+  progress: BuyerProgressEnum;
+
+  @Column()
+  selectedMaterials: string;
 
   @Column()
   name: string;
 
   @Column()
   phone: string;
-
-  @Column()
-  comment: string;
-
-  @Column()
-  progress: BuyerProgressEnum;
 
   @Column()
   category: string;
@@ -62,4 +63,7 @@ export class BuyerProductInfoForEdu {
 
   @ManyToOne((type) => User, (user) => user.buyerProductInfo)
   user: User;
+
+  @ManyToOne((type) => ProviderProductInfo, (product) => product.buyerProducts)
+  product: ProviderProductInfo;
 }

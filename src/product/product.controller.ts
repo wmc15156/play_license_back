@@ -42,6 +42,14 @@ export class ProductController {
   ) {}
 
 
+  @Get('/filter/:selectData')
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  @ApiOperation({ summary: '마켓페이지에서 "선택하세요" 필터링' })
+  async filterSelectData(@Param('selectData') selectData:string) {
+    return await this.productService.filterSelectData(selectData);
+  }
+
   @Get('/info/:productId')
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
@@ -61,6 +69,7 @@ export class ProductController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<any> {
+    console.log('here');
     const user = req.user as User;
     const product = await this.productService.createProduct(
       createProductDto,
@@ -102,6 +111,7 @@ export class ProductController {
     @Body(ValidationPipe)
     createProductByUserForEducationalDto: CreateProductByUserForEducationalDto,
   ) {
+    console.log('data');
     const buyerProduct = await this.productService.createProductByUserForEducational(
       user,
       createProductByUserForEducationalDto,
