@@ -119,6 +119,10 @@ export class ProviderProductInfo {
   @Column({ default: 0 })
   views: number;
 
+  @Column()
+  creativeStaff_total: number;
+
+
   @CreateDateColumn()
   createdAt: Date | string;
 

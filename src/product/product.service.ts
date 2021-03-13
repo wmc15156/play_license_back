@@ -384,4 +384,16 @@ export class ProductService {
     return data;
   }
 
+  async filterData(
+    totalNumber: number,
+    expression: string[] | null,
+    category: string,
+    genre: string,
+    mainAudience: string,
+    sizeOfPerformance: string
+    ) {
+    const product =  await this.productRepo.filterData(totalNumber, expression, category,genre,mainAudience, sizeOfPerformance);
+    return this.filteredProductData(product);
+  }
+
 }

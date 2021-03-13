@@ -50,6 +50,30 @@ export class ProductController {
     return await this.productService.filterSelectData(selectData);
   }
 
+  @Get('/filter')
+  @ApiImplicitQuery({ name: 'numberOfMembers', type: 'string' })
+  @ApiImplicitQuery({ name: 'category', type: 'string' })
+  @ApiImplicitQuery({ name: 'genre', type: 'string' })
+  @ApiImplicitQuery({ name: 'mainAudience', type: 'string' })
+  @ApiImplicitQuery({ name: 'sizeOfPerformance', type: 'string' })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  @ApiOperation({ summary: '마켓페이지 "필터링 찾기" 필터링'})
+  async filteredData(
+    @Query('numberOfMembers') numberOfMembers: string,
+    @Query('category') category: string,
+    @Query('genre') genre: string,
+    @Query('mainAudience') mainAudience: string,
+    @Query('sizeOfPerformance') sizeOfPerformance: string,
+  ) {
+    const regExp = /미만/gi;
+    const expression = numberOfMembers.match(regExp)
+    numberOfMembers.replace(/[^0-9]/g,"")
+    const totalNumber = parseInt(numberOfMembers.replace(/[^0-9]/g,""));
+
+    return this.productService.filterData(totalNumber, expression, category, genre, mainAudience,sizeOfPerformance);
+  }
+
   @Get('/info/:productId')
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })

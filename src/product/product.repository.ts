@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, LessThan, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
 import { ProviderProductInfo } from './entity/ProductInfo.entity';
 import { BadRequestException } from '@nestjs/common';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
@@ -71,6 +71,26 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
     }
 
     return bufferData;
+  }
+
+  async filterData(
+    totalNumber: number,
+    expression: string[] | null,
+    category: string,
+    genre: string,
+    mainAudience: string,
+    sizeOfPerformance: string
+  ) {
+    const symbol = expression ? '<' : '>=';
+    return this.find({
+      where: [
+        { creativeStaff_total: !isNaN(totalNumber) ? expression ? (LessThan(totalNumber)) : Not(LessThan(totalNumber)) : MoreThan(0) },
+        { category },
+        { genre },
+        { mainAudience },
+        { sizeOfPerformance },
+        ] // >=
+    })
   }
 
 }
