@@ -21,4 +21,27 @@ export class UserRepo extends Repository<User> {
      return this.findOne(id);
   }
 
+  async getBuyerInquiryDetails(userId: number) {
+    console.log(userId, '------');
+    const buyerInfo =  await this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.buyerProductInfo', 'buyerInfo')
+      .where('user.userId = :userId', { userId })
+      .select([
+        'buyerInfo.productId as buyerInfoProductId',
+      ])
+      .execute();
+
+    const buyerInfoEdu =  await this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.buyerProductInfoEdu', 'buyerInfoEdu')
+      .where('user.userId = :userId', { userId })
+      .select([
+        'buyerInfoEdu.productId as buyerInfoEduProductId',
+      ])
+      .execute();
+    console.log(buyerInfoEdu, 'here');
+    return buyerInfo.concat(buyerInfoEdu)
+  }
+
+
+
 }

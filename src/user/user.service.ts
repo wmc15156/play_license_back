@@ -62,7 +62,7 @@ export class UserService {
       const isEmailDuplicated = await this.userRepository.findOne({
         where: {
           email: createUserDto.email,
-          deletedAt: null,
+          // deletedAt: null,
         },
       });
 
@@ -108,7 +108,7 @@ export class UserService {
         phone: userInfo.phone,
         createdAt: new Date(),
         updatedAt: new Date(),
-        deletedAt: null,
+        // deletedAt: null,
         role: userRole,
       });
 
@@ -126,7 +126,7 @@ export class UserService {
       const userExist = await this.userRepository.findOne({
         where: {
           phone,
-          deletedAt: null,
+          // deletedAt: null,
         },
       });
 
@@ -197,7 +197,7 @@ export class UserService {
     const user = await this.userRepository.findOneOrFail({
       where: {
         userId,
-        deletedAt: null,
+        // deletedAt: null,
       },
       relations: ['role'],
     });
@@ -220,9 +220,9 @@ export class UserService {
         throw new NotFoundException('USER_NOT_FOUND');
       }
 
-      if (user.deletedAt !== null) {
-        throw new BadRequestException('DELETED_USER');
-      }
+      // if (user.deletedAt !== null) {
+      //   throw new BadRequestException('DELETED_USER');
+      // }
 
       const userPasswd = await this.userRepository.findOne({
         where: {
@@ -250,7 +250,7 @@ export class UserService {
       const user = await this.userRepository.findOne({
         where: {
           email,
-          deletedAt: null,
+          // deletedAt: null,
         },
       });
 
@@ -357,10 +357,10 @@ export class UserService {
     const { userId } = user;
     try {
       const findOneUser = await this.userRepository.findOne({
-        where: { userId, deletedAt: null },
+        where: { userId,  }, //deletedAt: null
       });
       if (findOneUser) {
-        findOneUser.deletedAt = new Date();
+        // findOneUser.deletedAt = new Date();
         await this.userRepository.save(findOneUser);
       } else {
         throw new NotFoundException('NO_USER');
@@ -374,7 +374,7 @@ export class UserService {
     const { userId } = user;
     try {
       const findOneUser = await this.userRepository.findOne({
-        where: { userId, deletedAt: null },
+        where: { userId, }, //deletedAt: null
       });
       if (findOneUser) {
         if (updateUserDto.phone) {
@@ -422,7 +422,7 @@ export class UserService {
     try {
       const findAdmin = await this.userRepository.findOne({
         email,
-        deletedAt: null,
+        // deletedAt: null,
       });
 
       if (findAdmin) {
@@ -437,7 +437,7 @@ export class UserService {
         phone: 'admin',
         role: adminRole,
         createdAt: new Date(),
-        deletedAt: null,
+        // deletedAt: null,
         updatedAt: new Date(),
       });
 

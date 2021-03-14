@@ -10,6 +10,7 @@ import { User } from '../user/entity/user.entity';
 import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 import { ProductRepository } from './product.repository';
+import { UserRepo } from '../user/user.repository';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProductRepository } from './product.repository';
       User,
       BuyerProductInfo,
       BuyerProductInfoForEdu,
-      ProductRepository
+      ProductRepository,
+      UserRepo,
     ]),
   ],
   controllers: [ProductController],

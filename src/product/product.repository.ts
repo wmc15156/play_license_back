@@ -3,6 +3,7 @@ import { ProviderProductInfo } from './entity/ProductInfo.entity';
 import { BadRequestException } from '@nestjs/common';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
+import { User } from '../user/entity/user.entity';
 
 export class CountProduct extends ProviderProductInfo {
   count?: number;
@@ -81,7 +82,6 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
     mainAudience: string,
     sizeOfPerformance: string
   ) {
-    const symbol = expression ? '<' : '>=';
     return this.find({
       where: [
         { creativeStaff_total: !isNaN(totalNumber) ? expression ? (LessThan(totalNumber)) : Not(LessThan(totalNumber)) : MoreThan(0) },
@@ -92,5 +92,6 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
         ] // >=
     })
   }
+
 
 }

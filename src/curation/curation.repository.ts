@@ -25,6 +25,7 @@ export class CurationRepository extends Repository<CurationInfo> {
       ])
 
       .execute()
+    console.log(values)
     return values;
   }
 

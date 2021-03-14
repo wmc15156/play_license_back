@@ -71,6 +71,12 @@ export class BuyerProductInfo {
   @Column()
   progress: BuyerProgressEnum;
 
+  @Column({ default: '공연목적' })
+  category: string;
+
+  @Column( { default: '관리자검토중'})
+  admin_check: string;
+
   @CreateDateColumn()
   createdAt: Date | string;
 

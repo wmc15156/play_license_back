@@ -52,6 +52,9 @@ export class BuyerProductInfoForEdu {
   @Column()
   category: string;
 
+  @Column( { default: '관리자검토중'})
+  admin_check: string;
+
   @CreateDateColumn()
   createdAt: Date | string;
 

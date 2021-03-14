@@ -313,9 +313,9 @@ export class AuthService {
     console.log('SHIT' + JSON.stringify(isHavingEmail, null, 2));
 
     if (isHavingEmail) {
-      if (isHavingEmail.deletedAt === null) {
-        throw new Error('ALREADY_SIGNED_UP_OTHER_LOGIN');
-      }
+      // if (isHavingEmail.deletedAt === null) {
+      //   throw new Error('ALREADY_SIGNED_UP_OTHER_LOGIN');
+      // }
       throw new Error('USER_DELETED');
     }
     return null;

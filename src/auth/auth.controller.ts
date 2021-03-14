@@ -113,7 +113,7 @@ export class AuthController {
       user.role.role,
     );
 
-    const { createdAt, updatedAt, deletedAt, role, ...result } = user;
+    const { createdAt, updatedAt, role, ...result } = user;
     result['role'] = user.role.role;
 
     this.setUserTokenToCookie(res, jwt);

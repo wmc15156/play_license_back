@@ -19,6 +19,10 @@ import {
 import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 import { ProductRepository } from './product.repository';
+import { UserRepo } from '../user/user.repository';
+import { BuyerInfo } from './type/typed';
+
+import * as _ from 'lodash';
 
 export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
@@ -44,6 +48,8 @@ export class ProductService {
     private readonly buyerProductRepository: Repository<BuyerProductInfo>,
     @InjectRepository(BuyerProductInfoForEdu)
     private readonly buyerProductInfoForEduRepository: Repository<BuyerProductInfoForEdu>,
+    @InjectRepository(UserRepo)
+    private readonly userRepo,
   ) {}
 
   async createProduct(
@@ -317,23 +323,49 @@ export class ProductService {
     try {
       const findUserAndProduct = await this.userRepository.find({
         where: {userId},
-        relations: ['buyerProductInfo','buyerProductInfoEdu']
+        relations: ['buyerProductInfo','buyerProductInfoEdu', 'products']
       });
+      const buyerInfo: BuyerInfo[] = await this.userRepo.getBuyerInquiryDetails(userId);
 
-      sumProduct = sumProduct.concat(findUserAndProduct[0].buyerProductInfoEdu)
-      sumProduct = sumProduct.concat(findUserAndProduct[0].buyerProductInfo);
+      const data = await Promise.all(buyerInfo.map((data) => {
+        if (data.buyerInfoProductId) {
+          return this.buyerProductRepository.createQueryBuilder('buyerInfo')
+            .leftJoinAndSelect('buyerInfo.product', 'product')
+            .where('buyerInfo.productId = :id', { id: data.buyerInfoProductId })
+            .select([
+              'buyerInfo.productId as questionId',
+              'buyerInfo.progress as adminCheck',
+              'buyerInfo.createdAt as createdAt',
+              'buyerInfo.category as category',
+              'product.title as title',
+            ])
+            .execute()
+        }
+        if(data.buyerInfoEduProductId) {
+          return this.buyerProductInfoForEduRepository.createQueryBuilder('buyerInfoEdu')
+            .leftJoinAndSelect('buyerInfoEdu.product', 'product')
+            .where('buyerInfoEdu.productId = :id', { id: data.buyerInfoEduProductId })
+            .select([
+              'buyerInfoEdu.productId as questionId',
+              'buyerInfoEdu.progress as adminCheck',
+              'buyerInfoEdu.createdAt as createdAt',
+              'buyerInfoEdu.category as category',
+              'product.title as title',
+            ])
+            .execute()
+        }
+      }))
+      const result = _.flatten(data);
 
-      return  sumProduct.map((product) => {
+      return  result.map((product) => {
         const { updatedAt, deletedAt, ...result } = product;
         result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
-        result.requiredMaterials = result.requiredMaterials.split(',');
         return result;
       });
 
     } catch(err) {
       console.error(err);
     }
-
   }
 
   async deleteWishProduct(id: number, me:User): Promise<null> {
