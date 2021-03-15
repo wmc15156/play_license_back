@@ -41,20 +41,20 @@ export class BuyerProductInfo {
   @Column({ type: 'json' })
   place: object;
 
-  @Column({ type: 'json' })
-  price: object;
+  @Column()
+  price: string;
 
   @Column()
   isChangedScenario: string;
 
-  @Column()
-  changedRange: string;
+  @Column({ type: 'json' })
+  changedRange: object;
 
   @Column()
   requiredMaterials: string;
 
-  @Column()
-  selectedMaterials: string;
+  @Column({ type: 'json' })
+  selectedMaterials: object;
 
   @Column({ type: 'json' })
   participant: object;

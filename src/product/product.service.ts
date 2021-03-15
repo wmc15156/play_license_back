@@ -190,7 +190,7 @@ export class ProductService {
       if(!product) {
         throw new BadRequestException('no exist productId');
       }
-      const convertToString = JSON.stringify(createProductByUserDto.planDocument);
+
       const buyerProduct = await this.buyerProductRepository.save({
         groupName: createProductByUserDto.groupName,
         introduction: createProductByUserDto.introduction,
@@ -200,11 +200,11 @@ export class ProductService {
         plan: JSON.stringify(createProductByUserDto.plan),
         price: createProductByUserDto.price,
         isChangedScenario: createProductByUserDto.isChangedScenario,
-        changedRange: JSON.stringify(createProductByUserDto.changedRange),
+        changedRange: createProductByUserDto.changedRange,
         requiredMaterials:
           Array.isArray(createProductByUserDto.requiredMaterials) &&
           createProductByUserDto.requiredMaterials.join(','),
-        selectedMaterials: JSON.stringify(createProductByUserDto.selectedMaterials),
+        selectedMaterials: createProductByUserDto.selectedMaterials,
         participant: createProductByUserDto.participant,
         name: createProductByUserDto.name,
         phone: createProductByUserDto.phone,
@@ -251,7 +251,7 @@ export class ProductService {
             createProductByUserForEducationalDto.requiredMaterials,
           ) && createProductByUserForEducationalDto.requiredMaterials.join(','),
         selectedMaterials:
-          JSON.stringify(createProductByUserForEducationalDto.selectedMaterials),
+          createProductByUserForEducationalDto.selectedMaterials,
         name: createProductByUserForEducationalDto.name,
         phone: createProductByUserForEducationalDto.phone,
         comment: createProductByUserForEducationalDto.comment,

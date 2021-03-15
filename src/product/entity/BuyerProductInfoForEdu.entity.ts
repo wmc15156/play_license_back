@@ -40,8 +40,8 @@ export class BuyerProductInfoForEdu {
   @Column()
   progress: BuyerProgressEnum;
 
-  @Column()
-  selectedMaterials: string;
+  @Column({ type: 'json' })
+  selectedMaterials: object;
 
   @Column()
   name: string;

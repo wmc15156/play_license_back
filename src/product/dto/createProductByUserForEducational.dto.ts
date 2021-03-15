@@ -43,7 +43,7 @@ export class CreateProductByUserForEducationalDto {
   period: string;
 
   @ApiModelProperty({
-    example: [{0: { start: '2020-02-01', end: '2020-02-20'}}],
+    example: [{ start: '2020-02-01', end: '2020-02-20'}],
     description: '이용 기간',
   })
   @IsNotEmpty()
@@ -57,11 +57,11 @@ export class CreateProductByUserForEducationalDto {
   requiredMaterials: Array<string> | string;
 
   @ApiModelProperty({
-    example:['공연 MR', '연습 MR'],
+    example: {input: 'string', select: ['str', 'str']},
     description: '필요자료(선택자료들 중)',
   })
   @IsNotEmpty()
-  selectedMaterials: string[];
+  selectedMaterials: object;
 
   @ApiModelProperty({
     example: '김솔',

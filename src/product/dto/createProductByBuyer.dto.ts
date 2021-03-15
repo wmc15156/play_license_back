@@ -27,17 +27,17 @@ export class CreateProductByBuyerDto {
   introduction: string;
 
   @ApiModelProperty({
-    example: '졸업공연',
+    example: {0: 'string', 1: 'string'},
     description: '기획내용',
   })
   @IsNotEmpty()
   planDocument: object;
 
   @ApiModelProperty({
-    example: {
+    example: [{
       startDate: '2020-10-12',
       endDate: '2020-11-12',
-    },
+    }],
     description: '공연일정',
   })
   @IsNotEmpty()
@@ -51,18 +51,18 @@ export class CreateProductByBuyerDto {
   round: string;
 
   @ApiModelProperty({
-    example: "{ 소극장: '동양아트센터' }",
+    example: {place_select: 'string', place_detail: 'string', place_etc: 'string'},
     description: '공연장소 type: json',
   })
   @IsNotEmpty()
   place: object;
 
   @ApiModelProperty({
-    example: "{유료: '30000원/매'}",
-    description: '티켓가격, type: json',
+    example: '3000원',
+    description: '티켓가격,',
   })
   @IsNotEmpty()
-  price: object;
+  price: string;
 
   @ApiModelProperty({
     example: '각색있음',
@@ -72,11 +72,11 @@ export class CreateProductByBuyerDto {
   isChangedScenario: string;
 
   @ApiModelProperty({
-    example: ['대사'],
+    example: {select: ["대사", '기타'], input: '기타내용'},
     description: '각색범위',
   })
   @IsNotEmpty()
-  changedRange: string[];
+  changedRange: object;
 
   @ApiModelProperty({
     example: ['대본', '보컬악보'],
@@ -86,11 +86,11 @@ export class CreateProductByBuyerDto {
   requiredMaterials: Array<string> | string;
 
   @ApiModelProperty({
-    example: ['총보(라이브 연주 가능 악보', '기타'],
+    example: {select: ["대사", '기타'], input: '기타내용'},
     description: '필요자료(선택자료들 중)',
   })
   @IsNotEmpty()
-  selectedMaterials: string[];
+  selectedMaterials: object;
 
   @ApiModelProperty({
     example: { actor: '12명', staff: '21명' },
