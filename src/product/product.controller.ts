@@ -233,6 +233,8 @@ export class ProductController {
     console.log(result);
   }
 
+
+
   @Post('/test')
   async test2(@Body() data:string) {
     await this.productService.test2(data);

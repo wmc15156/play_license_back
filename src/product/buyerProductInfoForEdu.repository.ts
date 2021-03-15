@@ -1,18 +1,15 @@
 import { EntityRepository, Repository } from 'typeorm';
-import { BuyerProductInfo, BuyerProgressEnum } from './entity/BuyerProductInfo.entity';
+import { BuyerProgressEnum } from './entity/BuyerProductInfo.entity';
 import { BadRequestException } from '@nestjs/common';
+import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 
-@EntityRepository(BuyerProductInfo)
-export class BuyerProductInfoRepository extends Repository<BuyerProductInfo> {
-  async getBuyerInquiryDetails() {
-    await this.createQueryBuilder('buyerProductInfoEdu')
-      .leftJoin('user', 'user')
-      .execute()
-  }
+@EntityRepository(BuyerProductInfoForEdu)
+export class BuyerProductInfoForEduRepository extends Repository<BuyerProductInfoForEdu> {
+
 
   async updateToCanceledForProgress(productId: number) {
     const data = await this.findOne(productId);
-
+    console.log(data);
     if(!data) throw new BadRequestException('no exist production')
 
     data.progress = BuyerProgressEnum.CANCELED;

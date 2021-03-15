@@ -11,10 +11,12 @@ import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 import { UserRepo } from './user.repository';
+import { BuyerProductInfoRepository } from '../product/buyerProductInfo.repository';
+import { BuyerProductInfoForEduRepository } from '../product/buyerProductInfoForEdu.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PhoneValidation, ProviderAccount, UserRepo]),
+    TypeOrmModule.forFeature([User, PhoneValidation, ProviderAccount, UserRepo, BuyerProductInfoRepository, BuyerProductInfoForEduRepository]),
     SmsModule,
     RolesModule,
     DotenvModule,

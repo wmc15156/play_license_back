@@ -27,6 +27,9 @@ import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 import { RolesEnum } from '../auth/enum/Roles.enum';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 import { UserRepo } from './user.repository';
+import { UserAddProductPlan } from './interfaces/UserAddProductPlan.interface';
+import { BuyerProductInfoRepository } from '../product/buyerProductInfo.repository';
+import { BuyerProductInfoForEduRepository } from '../product/buyerProductInfoForEdu.repository';
 
 @Injectable()
 export class UserService {
@@ -41,6 +44,10 @@ export class UserService {
     private readonly providerAccountRepository: Repository<ProviderAccount>,
     @InjectRepository(UserRepo)
     private readonly userRepo: UserRepo,
+    @InjectRepository(BuyerProductInfoRepository)
+    private readonly buyerProductInfo: BuyerProductInfoRepository,
+    @InjectRepository(BuyerProductInfoForEduRepository)
+    private readonly buyerProductInfoForEdu: BuyerProductInfoForEduRepository,
 
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
@@ -469,6 +476,50 @@ export class UserService {
     const len = email.split('@')[0].length - 4;
     email = email.replace(new RegExp('.(?=.{0,' + len + '}@)', 'g'), '*');
     return email;
+  }
+
+  async getInquiryForPerformance(me: User, id: number) {
+    const { userId } = me;
+    const data:any = await this.userRepo.getInquiryForPerformance(userId, id);
+
+    if(!data.length) {
+      throw new Error('NO_EXIST_PRODUCT');
+    }
+
+    data[0].product_plan = this.changeTypeOfProductDate(data[0].product_plan);
+    return data;
+  }
+
+  async getInquiryForEducation(me: User, id: number) {
+    const { userId } = me;
+    const data:any = await this.userRepo.getInquiryForEducation(userId, id);
+    if(!data.length) {
+      throw new Error('NO_EXIST_PRODUCT');
+    }
+    console.log(data);
+    data[0].product_plan = this.changeTypeOfProductDate(data[0].product_plan);
+    return data;
+  }
+
+  async withdrawAnInquiry(user:User, cate: string, id:number) {
+    const { userId } = user;
+
+    if(cate === 'performance') {
+      const productId =  await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
+      await this.buyerProductInfo.updateToCanceledForProgress(productId);
+      return true;
+    }
+
+    if(cate === 'education') {
+      const productId =  await this.userRepo.withdrawAnInquiryForEducation(userId, id);
+      await this.buyerProductInfoForEdu.updateToCanceledForProgress(productId);
+      return true;
+    }
+    throw new BadRequestException('check the  category name');
+  }
+
+  changeTypeOfProductDate(date: string) {
+    return JSON.parse(date);
   }
 
 }

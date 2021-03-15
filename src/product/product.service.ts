@@ -245,7 +245,7 @@ export class ProductService {
         introduction: createProductByUserForEducationalDto.introduction,
         objective: createProductByUserForEducationalDto.objective,
         period: createProductByUserForEducationalDto.period,
-        startDate: JSON.stringify(createProductByUserForEducationalDto.startDate),
+        plan: JSON.stringify(createProductByUserForEducationalDto.plan),
         requiredMaterials:
           Array.isArray(
             createProductByUserForEducationalDto.requiredMaterials,
@@ -427,5 +427,6 @@ export class ProductService {
     const product =  await this.productRepo.filterData(totalNumber, expression, category,genre,mainAudience, sizeOfPerformance);
     return this.filteredProductData(product);
   }
+
 
 }

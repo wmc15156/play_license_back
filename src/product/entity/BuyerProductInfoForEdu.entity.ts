@@ -29,7 +29,7 @@ export class BuyerProductInfoForEdu {
   period: string;
 
   @Column()
-  startDate: string;
+  plan: string;
 
   @Column()
   requiredMaterials: string;

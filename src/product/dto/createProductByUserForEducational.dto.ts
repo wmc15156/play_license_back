@@ -47,7 +47,7 @@ export class CreateProductByUserForEducationalDto {
     description: '이용 기간',
   })
   @IsNotEmpty()
-  startDate: object[];
+  plan: object[];
 
   @ApiModelProperty({
     example: ['대본', '보컬악보'],

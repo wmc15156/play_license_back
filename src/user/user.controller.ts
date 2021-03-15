@@ -5,7 +5,7 @@ import {
   Get, HttpStatus,
   Logger,
   NotFoundException,
-  Param,
+  Param, ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -32,7 +32,8 @@ import { GetUser } from '../decorator/create-user.decorator';
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) {
+  }
 
   @Post('/phone-validation/:phone')
   @ApiOperation({ summary: '휴대폰 번호 인증 문자 발송' })
@@ -40,10 +41,10 @@ export class UserController {
   async sendPhoneValidationNumber(
     @Param() params: SendPhoneValidationNumberDto,
   ) {
-      // response dto 생성필요
-      console.log('here');
-      await this.userService.sendPhoneValidationNumber(params.phone);
-      return 'OK';
+    // response dto 생성필요
+    console.log('here');
+    await this.userService.sendPhoneValidationNumber(params.phone);
+    return 'OK';
   }
 
   @Get('/phone-validation')
@@ -96,30 +97,63 @@ export class UserController {
   }
 
   @Get('/find/:phone')
-  @ApiOperation({ summary: 'email 찾기'})
-  @ApiResponse({ status : HttpStatus.OK })
-  @ApiResponse( { status: HttpStatus.BAD_REQUEST, type: BadRequestException })
-  async findEmail(@Param() phoneNumber: {phone: string}) {
+  @ApiOperation({ summary: 'email 찾기' })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
+  async findEmail(@Param() phoneNumber: { phone: string }) {
     const { phone } = phoneNumber;
     return this.userService.findEmail(phone);
   }
 
   @Get('/me')
-  @ApiOperation({ summary: '로그인 여부'})
-  @ApiResponse({ status : HttpStatus.OK })
+  @ApiOperation({ summary: '로그인 여부' })
+  @ApiResponse({ status: HttpStatus.OK })
 
-  async me(@Req() req:Response, @Res() res:Response) {
+  async me(@Req() req: Response, @Res() res: Response) {
     const isLogin = !!req['signedCookies']['authtoken'];
     return res.status(200).send(isLogin);
   }
 
   @Get('/check/password/:password')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '사용자 비밀번호 확인'})
-  @ApiResponse({ status : HttpStatus.OK })
+  @ApiOperation({ summary: '사용자 비밀번호 확인' })
+  @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async checkPassword(@GetUser() user, @Param() pw: { password: string }) {
     const { password } = pw;
     return this.userService.checkPassword(user, password);
   }
+
+  @Get('/inquiry/performance/:productId')
+  @ApiOperation({ summary: '사용자 구매문의 내역 데이터(공연목적용)' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async getInquiryForPerformance(@GetUser() user: User, @Param('productId', ParseIntPipe) id: number) {
+    return await this.userService.getInquiryForPerformance(user, id);
+  }
+
+  @Get('/inquiry/education/:productId')
+  @ApiOperation({ summary: '사용자 구매문의 내역 데이터(공연목적용)' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async getInquiryForEducation(@GetUser() user: User, @Param('productId', ParseIntPipe) id: number) {
+    return await this.userService.getInquiryForEducation(user, id);
+  }
+  @Patch('/withdraw/:category/:productId')
+  @ApiOperation({ summary: '사용자 구매문의 철회' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async withdrawAnInquiry(
+    @GetUser() user: User,
+    @Param('category') cate: string,
+    @Param('productId', ParseIntPipe) id: number
+  ) {
+    return this.userService.withdrawAnInquiry(user, cate, id);
+  }
+
+
 }
+
