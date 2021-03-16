@@ -157,7 +157,7 @@ export class UserController {
     return this.userService.withdrawAnInquiry(user, cate, id);
   }
 
-  @Patch('/performance/:productId')
+  @Patch('/inquiry/performance/:productId')
   @ApiOperation({ summary: '사용자 구매문의 수정(공연목적용)' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
@@ -170,7 +170,7 @@ export class UserController {
     return this.userService.updateAnInquiryForPerformance(user, updateProductDto, id);
   }
 
-  @Patch('/education/:productId')
+  @Patch('/inquiry/education/:productId')
   @ApiOperation({ summary: '사용자 구매문의 수정(교육목적용)' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
