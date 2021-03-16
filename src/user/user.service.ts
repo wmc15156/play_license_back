@@ -30,6 +30,8 @@ import { UserRepo } from './user.repository';
 import { UserAddProductPlan } from './interfaces/UserAddProductPlan.interface';
 import { BuyerProductInfoRepository } from '../product/buyerProductInfo.repository';
 import { BuyerProductInfoForEduRepository } from '../product/buyerProductInfoForEdu.repository';
+import { CreateProductByBuyerDto } from '../product/dto/createProductByBuyer.dto';
+import { CreateProductByUserForEducationalDto } from '../product/dto/createProductByUserForEducational.dto';
 
 @Injectable()
 export class UserService {
@@ -48,12 +50,12 @@ export class UserService {
     private readonly buyerProductInfo: BuyerProductInfoRepository,
     @InjectRepository(BuyerProductInfoForEduRepository)
     private readonly buyerProductInfoForEdu: BuyerProductInfoForEduRepository,
-
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
     private readonly smsService: SmsService,
     private readonly emailService: EmailService,
-  ) {}
+  ) {
+  }
 
   async hashPassword(password: string) {
     return bcrypt.hash(password, 12);
@@ -86,7 +88,7 @@ export class UserService {
         throw new BadRequestException('MISSING_PASSWD');
       }
 
-      if(createUserDto.password) {
+      if (createUserDto.password) {
         hashedPassword = await this.hashPassword(createUserDto.password);
       }
 
@@ -96,7 +98,7 @@ export class UserService {
       } else if (createUserDto.role === RolesEnum.PROVIDER) {
         userRole = await this.roleService.getRole(RoleEnum.PROVIDER);
       }
-      console.log('---------3---------')
+      console.log('---------3---------');
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: {
           phone: userInfo.phone,
@@ -174,7 +176,7 @@ export class UserService {
 
       console.log(phoneValidation);
 
-      if(phoneValidation.validationCode !== code) {
+      if (phoneValidation.validationCode !== code) {
         throw new BadRequestException({ fail: true });
       }
 
@@ -273,10 +275,11 @@ export class UserService {
       throw err;
     }
   }
+
   async setTempPasswordAndSendTempPasswordByEmail({
-    user,
-    email,
-  }: {
+                                                    user,
+                                                    email,
+                                                  }: {
     user: User;
     email: string;
   }) {
@@ -294,50 +297,50 @@ export class UserService {
         title: '[PlayLicense] 회원님의 임시 비밀번호가 발급되었습니다.',
         body: `
         <table
-          background="#fff"
-          style="align: center; display: flex; width: 300px; text-align: center; background: #fff; margin: 32px auto;"
+          background='#fff'
+          style='align: center; display: flex; width: 300px; text-align: center; background: #fff; margin: 32px auto;'
         >
         
           <br/>
         
           <img
-            src="https://user-images.githubusercontent.com/60249156/109866502-b2bcce00-7ca8-11eb-860f-6474447185d4.png"
-            style="display: block; margin: 0 auto; width: 200px; height: auto;"
-            width="300px"
+            src='https://user-images.githubusercontent.com/60249156/109866502-b2bcce00-7ca8-11eb-860f-6474447185d4.png'
+            style='display: block; margin: 0 auto; width: 200px; height: auto;'
+            width='300px'
           />
           
           <br/>
           
-          <div style="display: block; margin: 16px auto 0 auto; width: 300px; padding: 16px; border-radius: 20px; border: solid 1px #bebebe;">
-            <div style="display: block; margin: 16px 0 16px 0; font-size: 18px; font-weight: 100; width: 100%; text-align: center">
+          <div style='display: block; margin: 16px auto 0 auto; width: 300px; padding: 16px; border-radius: 20px; border: solid 1px #bebebe;'>
+            <div style='display: block; margin: 16px 0 16px 0; font-size: 18px; font-weight: 100; width: 100%; text-align: center'>
               <span>회원님의 임시 비밀번호가 <br/>발급되었습니다.</span>
             </div>
             
-            <div style="display: block; margin: 32px 0 32px 0; font-size: 18px; font-weight: bold; width: 100%; text-align: center">
+            <div style='display: block; margin: 32px 0 32px 0; font-size: 18px; font-weight: bold; width: 100%; text-align: center'>
               <span>${tempPassword}</span>
             </div>
              
-            <div style="display: block; font-size: 18px; font-weight: 100; width: 100%; text-align: center">
+            <div style='display: block; font-size: 18px; font-weight: 100; width: 100%; text-align: center'>
               <span>임시 비밀번호로 로그인 하신 후,<br/> 비밀번호를 변경하시기 바랍니다.</span>
             </div>
             
-            <div class="test" style="margin: 32px auto 8px auto; display: flex; width: 200px; height: 50px; border-radius: 50px; 
-                  background-color: #FF6B39; justify-content: center; align-items: center;" >
+            <div class='test' style='margin: 32px auto 8px auto; display: flex; width: 200px; height: 50px; border-radius: 50px; 
+                  background-color: #FF6B39; justify-content: center; align-items: center;' >
               <a href='https://rufree-junior-p1-sangsang-frontend-swart.vercel.app/login' 
-              style="color: white; font-size: 16px; font-weight: bold; line-height: 50px; text-decoration: none">
+              style='color: white; font-size: 16px; font-weight: bold; line-height: 50px; text-decoration: none'>
               로그인하러가기</a>
             </div>
           </div>
           
           <br/>
           
-          <div style="display: block; width: 300px; margin: 0 auto 16px auto;">
-            <div style="display: block; width: 100%; text-align: center">
-              <span style="margin: 16px auto; display: block; font-size: 13px; color: #858585; line-height: 1.5">이 이메일은 PLAY-LISENCE 계정 및 서비스의 <br/>중요한 변경사항을 알려드리기 위해 발송되었습니다.</span>
+          <div style='display: block; width: 300px; margin: 0 auto 16px auto;'>
+            <div style='display: block; width: 100%; text-align: center'>
+              <span style='margin: 16px auto; display: block; font-size: 13px; color: #858585; line-height: 1.5'>이 이메일은 PLAY-LISENCE 계정 및 서비스의 <br/>중요한 변경사항을 알려드리기 위해 발송되었습니다.</span>
             </div>
             
-            <div style="display: block; width: 100%; text-align: center">
-              <span style="margin: 4px auto; display: block; font-size: 13px; color: #858585">ⓒ PLAY-LISENCE Corp.</span>
+            <div style='display: block; width: 100%; text-align: center'>
+              <span style='margin: 4px auto; display: block; font-size: 13px; color: #858585'>ⓒ PLAY-LISENCE Corp.</span>
             </div>
           </div>
         </table>
@@ -364,7 +367,7 @@ export class UserService {
     const { userId } = user;
     try {
       const findOneUser = await this.userRepository.findOne({
-        where: { userId,  }, //deletedAt: null
+        where: { userId }, //deletedAt: null
       });
       if (findOneUser) {
         // findOneUser.deletedAt = new Date();
@@ -381,7 +384,7 @@ export class UserService {
     const { userId } = user;
     try {
       const findOneUser = await this.userRepository.findOne({
-        where: { userId, }, //deletedAt: null
+        where: { userId }, //deletedAt: null
       });
       if (findOneUser) {
         if (updateUserDto.phone) {
@@ -462,15 +465,15 @@ export class UserService {
   }
 
   checkNull(email: [string]) {
-    if (typeof email === "undefined" || email === null || email[0] === "") {
+    if (typeof email === 'undefined' || email === null || email[0] === '') {
       return true;
     } else {
       return false;
     }
   }
 
-  async findEmail(phone: string):Promise<any> {
-    const data:User = await this.userRepo.findEmail(phone);
+  async findEmail(phone: string): Promise<any> {
+    const data: User = await this.userRepo.findEmail(phone);
     let { email } = data;
 
     const len = email.split('@')[0].length - 4;
@@ -480,9 +483,9 @@ export class UserService {
 
   async getInquiryForPerformance(me: User, id: number) {
     const { userId } = me;
-    const data:any = await this.userRepo.getInquiryForPerformance(userId, id);
+    const data: any = await this.userRepo.getInquiryForPerformance(userId, id);
 
-    if(!data.length) {
+    if (!data.length) {
       throw new Error('NO_EXIST_PRODUCT');
     }
 
@@ -492,8 +495,8 @@ export class UserService {
 
   async getInquiryForEducation(me: User, id: number) {
     const { userId } = me;
-    const data:any = await this.userRepo.getInquiryForEducation(userId, id);
-    if(!data.length) {
+    const data: any = await this.userRepo.getInquiryForEducation(userId, id);
+    if (!data.length) {
       throw new Error('NO_EXIST_PRODUCT');
     }
     console.log(data);
@@ -501,21 +504,44 @@ export class UserService {
     return data;
   }
 
-  async withdrawAnInquiry(user:User, cate: string, id:number) {
+  async withdrawAnInquiry(user: User, cate: string, id: number) {
     const { userId } = user;
 
-    if(cate === 'performance') {
-      const productId =  await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
+    if (cate === 'performance') {
+      const productId = await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
       await this.buyerProductInfo.updateToCanceledForProgress(productId);
       return true;
     }
 
-    if(cate === 'education') {
-      const productId =  await this.userRepo.withdrawAnInquiryForEducation(userId, id);
+    if (cate === 'education') {
+      const productId = await this.userRepo.withdrawAnInquiryForEducation(userId, id);
       await this.buyerProductInfoForEdu.updateToCanceledForProgress(productId);
       return true;
     }
     throw new BadRequestException('check the  category name');
+  }
+
+  async updateAnInquiryForPerformance(
+    user: User,
+    updateProductDto: CreateProductByBuyerDto,
+    id: number,
+  ) {
+    const { userId } = user;
+    const productId = await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
+    await this.buyerProductInfo.updateData(productId, updateProductDto);
+    return true;
+  }
+
+
+  async updateAnInquiryForEducation(
+    user: User,
+    updateProductDto: CreateProductByUserForEducationalDto,
+    id: number,
+  ) {
+    const { userId } = user;
+    const productId = await this.userRepo.withdrawAnInquiryForEducation(userId, id);
+    await this.buyerProductInfoForEdu.updateData(productId, updateProductDto);
+    return true;
   }
 
   changeTypeOfProductDate(date: string) {

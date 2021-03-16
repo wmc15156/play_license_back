@@ -1,9 +1,6 @@
 import { EntityRepository, LessThan, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
 import { ProviderProductInfo } from './entity/ProductInfo.entity';
 import { BadRequestException } from '@nestjs/common';
-import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
-import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
-import { User } from '../user/entity/user.entity';
 
 export class CountProduct extends ProviderProductInfo {
   count?: number;

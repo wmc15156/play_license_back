@@ -26,6 +26,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 import { User } from './entity/user.entity';
 import { GetUser } from '../decorator/create-user.decorator';
+import { ApiImplicitParam } from '@nestjs/swagger/dist/decorators/api-implicit-param.decorator';
+import { CreateProductByBuyerDto } from '../product/dto/createProductByBuyer.dto';
+import { CreateProductByUserForEducationalDto } from '../product/dto/createProductByUserForEducational.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -42,7 +45,6 @@ export class UserController {
     @Param() params: SendPhoneValidationNumberDto,
   ) {
     // response dto 생성필요
-    console.log('here');
     await this.userService.sendPhoneValidationNumber(params.phone);
     return 'OK';
   }
@@ -141,6 +143,7 @@ export class UserController {
   async getInquiryForEducation(@GetUser() user: User, @Param('productId', ParseIntPipe) id: number) {
     return await this.userService.getInquiryForEducation(user, id);
   }
+
   @Patch('/withdraw/:category/:productId')
   @ApiOperation({ summary: '사용자 구매문의 철회' })
   @UseGuards(AuthGuard('jwt'))
@@ -152,6 +155,32 @@ export class UserController {
     @Param('productId', ParseIntPipe) id: number
   ) {
     return this.userService.withdrawAnInquiry(user, cate, id);
+  }
+
+  @Patch('/performance/:productId')
+  @ApiOperation({ summary: '사용자 구매문의 수정(공연목적용)' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async updateAnInquiryForPerformance(
+    @GetUser() user: User,
+    @Param('productId', ParseIntPipe) id: number,
+    @Body(ValidationPipe) updateProductDto: CreateProductByBuyerDto
+  ) {
+    return this.userService.updateAnInquiryForPerformance(user, updateProductDto, id);
+  }
+
+  @Patch('/education/:productId')
+  @ApiOperation({ summary: '사용자 구매문의 수정(교육목적용)' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async updateAnInquiryForEducation(
+    @GetUser() user: User,
+    @Param('productId', ParseIntPipe) id: number,
+    @Body(ValidationPipe) updateProductDto: CreateProductByUserForEducationalDto
+  ) {
+    return this.userService.updateAnInquiryForEducation(user, updateProductDto , id);
   }
 
 
