@@ -79,7 +79,9 @@ export class ProductController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   @ApiOperation({ summary: '해당 작품 정보전송' })
   async getProduct(@Param('productId', ParseIntPipe) id:number) {
-    return await this.productService.getProduct(id);
+    const result =  await this.productService.getProduct(id);
+    console.log(result);
+    return this.productService.convertProductData(result);
   }
 
   @Post('/provider')

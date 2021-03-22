@@ -87,7 +87,7 @@ export class ProductService {
         comment: createProductDto.comment,
         creativeStaff: createProductDto.creativeStaff,
         genre: JSON.stringify(createProductDto.genre),
-        mainAudience: createProductDto.mainAudience,
+        mainAudience: JSON.stringify(createProductDto.mainAudience),
         sizeOfPerformance: createProductDto.sizeOfPerformance,
         castMembers: createProductDto.castMembers,
         changeScenario: createProductDto.changeScenario,
@@ -123,6 +123,7 @@ export class ProductService {
     const { updatedAt, deletedAt, isCheckInformation, ...result } = product;
     result.genre = JSON.parse(result.genre);
     result.numberList = JSON.parse(result.numberList);
+    result.mainAudience = JSON.parse(result.mainAudience);
     result.createdAt = moment(product.createdAt).format('YYYY-MM-DD');
     return result;
   }

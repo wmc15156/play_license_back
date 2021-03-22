@@ -123,12 +123,12 @@ export class CreateProductDto {
   genre: [string];
 
   @ApiModelProperty({
-    example: '일반(15세~성인)',
+    example: ['일반(15세~성인)', '유아용'],
     description: '주관람층',
   })
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  mainAudience: string;
+  mainAudience: [string];
 
   @ApiModelProperty({
     example: '소규모',
