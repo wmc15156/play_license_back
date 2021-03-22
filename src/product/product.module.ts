@@ -11,6 +11,7 @@ import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { BuyerProductInfoForEdu } from './entity/BuyerProductInfoForEdu.entity';
 import { ProductRepository } from './product.repository';
 import { UserRepo } from '../user/user.repository';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserRepo } from '../user/user.repository';
       BuyerProductInfoForEdu,
       ProductRepository,
       UserRepo,
+      ProviderAccount
     ]),
   ],
   controllers: [ProductController],

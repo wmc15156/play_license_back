@@ -34,6 +34,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProviderAccount } from './entity/providerAccount.entity';
 import { Repository } from 'typeorm';
 import { DuplicateEmailDto } from './dto/duplicateEmail.dto';
+import { GetUser } from '../decorator/create-user.decorator';
 
 
 @ApiTags('auth(인증)')
@@ -60,7 +61,6 @@ export class AuthController {
     @Res() res: Response,
   ) {
     // service로 빼기
-    console.log('---', createUserDto, req.signedCookies);
     let oauthId: string | null = null;
     if (req.signedCookies['Oauthtoken']) {
       const decoded = jwt.verify(
@@ -91,6 +91,7 @@ export class AuthController {
     //
     // this.setUserTokenToCookie(res, jwtToken);
     res.clearCookie('authtoken');
+    res.clearCookie('providerToken');
     res.clearCookie('Oauthtoken');
     return res.status(201).json({ success: true });
   }
@@ -107,6 +108,8 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const user = req.user as User;
+    console.log(user);
+
     const jwt = await this.authService.createUserToken(
       user.userId,
       AuthProviderEnum.LOCAL,
@@ -118,6 +121,31 @@ export class AuthController {
 
     this.setUserTokenToCookie(res, jwt);
     return res.status(201).json({ success: 'true', userInfo: result });
+  }
+
+  @Post('/provider/login')
+  @UseGuards(AuthGuard('providerLocal'))
+  @ApiOperation({ summary: '로컬 provider 로그인' })
+  @ApiResponse({ status: 201, description: 'success' })
+  @ApiResponse({ status: 400, description: 'oauth signup or wrong password' })
+  @ApiResponse({ status: 404, description: 'user not found' })
+  async loginByProvider(
+    @Body(ValidationPipe) loginDto: LoginDto,
+    @GetUser() user:ProviderAccount,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const jwt = await this.authService.createUserToken(
+      user.providerId,
+      AuthProviderEnum.LOCAL,
+      RoleEnum.PROVIDER
+    );
+
+    const { createdAt, updatedAt, deletedAt, ...result } = user;
+    result['role'] = 'provider';
+
+    this.setUserTokenToCookie(res, jwt, false);
+    return res.status(201).json(result);
   }
 
   @Get('/google')
@@ -220,13 +248,14 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'duplicated email' })
   async giveAuthority(
     @Body(ValidationPipe) createProviderDto: CreateProviderDto,
-  ): Promise<ProviderAccount> {
-    const { email, fullName, company, password } = createProviderDto;
+  ): Promise<any> {
+    const { email, fullName, company, password, phone } = createProviderDto;
     return await this.authService.createProvider(
       email,
       fullName,
       company,
       password,
+      phone
     );
   }
 
@@ -251,11 +280,10 @@ export class AuthController {
     return res.status(200).send(true);
   }
 
-
-
-
-  setUserTokenToCookie(res: Response, token: string) {
-    res.cookie('authtoken', token, {
+  setUserTokenToCookie(res: Response, token: string, skip=true) {
+    let tokenName: | 'authtoken' | 'providerToken' | null = null;
+    tokenName = skip ? 'authtoken' : 'providerToken';
+    res.cookie(tokenName, token, {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,

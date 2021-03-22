@@ -7,8 +7,8 @@ import { DotenvService } from '../../dotenv/dotenv.service';
 import { UserService } from '../../user/user.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  private readonly logger = new Logger(JwtStrategy.name);
+export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvider') {
+  private readonly logger = new Logger(JwtProviderStrategy.name);
 
   constructor(
     private readonly dotenvConfigService: DotenvService,
@@ -19,8 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       jwtFromRequest: (req: Request) => {
         let token = null;
         if (req && req.signedCookies) {
-          token = req.signedCookies['authtoken']
-            || req.signedCookies['Oauthtoken'];
+          token = req.signedCookies['providerToken']
         }
         return token;
       },
@@ -30,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: any, done: (err: any, payload: any) => void) {
     try {
       const { userId, role } = payload;
-      const user = await this.userService.findOneByUserId(userId);
+      const user = await this.userService.findOneByUserId(userId, false);
 
       this.logger.debug(
         'usertoken validated: ' + JSON.stringify(user, null, 2),

@@ -20,6 +20,7 @@ export interface CreativeStaff {
   composer?: string;
 }
 
+
 export class CreateProductDto {
   @ApiModelProperty({
     example: '푸른바다 제작사',
@@ -46,7 +47,7 @@ export class CreateProductDto {
 
   @ApiModelProperty({
     example: '마당씨의 식탁',
-    description: '작품명',
+    description: '등록할 작품명',
   })
   @IsString()
   @IsNotEmpty()
@@ -76,24 +77,18 @@ export class CreateProductDto {
   year: string;
 
   @ApiModelProperty({
-    example: '["대본", "악보", "원본포스터"]',
+    example: { select: [{name: '대본', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}, {}, {}, {}] },
     description: '필수제공자료',
   })
-  @IsArray()
   @IsNotEmpty()
-  requiredMaterials: [string];
+  requiredMaterials: object; // // { select: [{}, {}, {}, {}]}
 
-  //  일단 배열로 받는다고 가정하에 서버에서 금액부분을 추가해서 넣을예정
-  //
   @ApiModelProperty({
-    example: '["의상디자인", "소품디자인", "무대디자인"]',
-    description:
-      '선택제공자료 \n 배열로 받을지 객체로 받을지 결정이 필요함. ' +
-      '배열로 받아서 금액부분은 default 0원으로 넣을예정',
+    example: { select: [{name: '연습MR', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}, {}, {}, {}], input: '기타' },
+    description: '선택제공자료'
   })
-  @IsArray()
   @IsNotEmpty()
-  selectMaterials: [string];
+  selectMaterials: object;  // { select: [{}, {}, {}, {}], input: '' }
 
   @ApiModelProperty({
     example: '잘부탁드립니다.',
@@ -120,12 +115,12 @@ export class CreateProductDto {
   creativeStaff: CreativeStaff;
 
   @ApiModelProperty({
-    example: '가족',
+    example: ['가족', '공포'],
     description: '장르',
   })
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  genre: string;
+  genre: [string];
 
   @ApiModelProperty({
     example: '일반(15세~성인)',
@@ -150,6 +145,13 @@ export class CreateProductDto {
   @IsObject()
   @IsNotEmpty()
   castMembers: CastMembers;
+
+  @ApiModelProperty({
+    example: { runningTime: '1시간 30분', intermission: '30분'}
+  })
+  @IsObject()
+  @IsNotEmpty()
+  totalTime: object;
 
   @ApiModelProperty({
     example: '각색있음',
@@ -218,12 +220,18 @@ export class CreateProductDto {
   performanceInformationURL: string;
 
   @ApiModelProperty({
-    example: '넘버리스트',
+    example: ['첫번째', '두번째', '세번째'],
     description: '넘버리스트?',
   })
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  numberList: string;
+  numberList: [string];
+
+  @ApiModelProperty({
+    example: 7,
+    description: '출연진 총 인원수'
+  })
+  creativeStaff_total: number;
 
   @ApiModelProperty({
     example: true,

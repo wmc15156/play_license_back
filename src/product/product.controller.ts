@@ -85,7 +85,7 @@ export class ProductController {
   @Post('/provider')
   @ApiOperation({ summary: '공급자 작품등록' })
   @Roles(RoleEnum.PROVIDER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
   @ApiResponse({ status: 201, description: 'success' })
   @ApiResponse({ status: 403, description: 'Forbidden resource' })
   async createProduct(
@@ -93,7 +93,6 @@ export class ProductController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<any> {
-    console.log('here');
     const user = req.user as User;
     const product = await this.productService.createProduct(
       createProductDto,
@@ -178,6 +177,7 @@ export class ProductController {
     @GetUser() user: User,
     @Res() res: Response,
   ): Promise<any> {
+    console.log('here');
     await this.productService.addItem(user, id);
     return res.status(200).send('success');
   }

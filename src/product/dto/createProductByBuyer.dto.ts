@@ -79,14 +79,14 @@ export class CreateProductByBuyerDto {
   changedRange: object;
 
   @ApiModelProperty({
-    example: ['대본', '보컬악보'],
+    example: ['대본', '보컬악보'], // { select: [{}, {}, {}, {}] }
     description: '필요자료',
   })
   @IsNotEmpty()
   requiredMaterials: Array<string> | string;
 
   @ApiModelProperty({
-    example: {select: ["대사", '기타'], input: '기타내용'},
+    example: { select: ["대사", '기타'], input: '기타내용'},
     description: '필요자료(선택자료들 중)',
   })
   @IsNotEmpty()

@@ -49,6 +49,17 @@ export class UserController {
     return 'OK';
   }
 
+  @Post('/phone-validation/provider/:phone')
+  @ApiOperation({ summary: '휴대폰 번호 인증 문자 발송(provider)' })
+  @ApiResponse({ status: 201, description: 'success' })
+  async sendPhoneValidationNumberByProvider(
+    @Param() params: SendPhoneValidationNumberDto,
+  ) {
+    // response dto 생성필요
+    await this.userService.sendPhoneValidationNumber(params.phone, false);
+    return 'OK';
+  }
+
   @Get('/phone-validation')
   @ApiOperation({
     summary: '인증번호 유효성 검사',
@@ -73,12 +84,41 @@ export class UserController {
     }
   }
 
+  @Get('/phone-validation/provider')
+  @ApiOperation({
+    summary: '인증번호 유효성 검사',
+    description: '회원가입 시 본인인증',
+  })
+  @ApiImplicitQuery({ name: 'phone', type: 'string' })
+  @ApiImplicitQuery({ name: 'code' })
+  @ApiResponse({ status: 404, description: 'phone number not found' })
+  @ApiResponse({ status: 403, description: 'code is expired' })
+  @ApiResponse({ status: 200, description: 'success' })
+  async checkPhoneValidationCodeByProvider(
+    @Query('phone') phone: string,
+    @Query('code') code: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.userService.checkPhoneValidationCode(phone, code);
+      return res.json({ success: true });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
   @Get('/forgot-password/by-email')
   @ApiOperation({ summary: '이메일로 패스워드 찾기' })
   async findCreatorPasswordByEmail(@Query() { email }: FindByEmailQuery) {
-    await this.userService.findPasswordByEmail({
-      email,
-    });
+    await this.userService.findPasswordByEmail(email);
+  }
+
+  @Get('/forgot-password/by-email/provider')
+  @ApiOperation({ summary: '이메일로 패스워드 찾기(provider 전용)' })
+  async findCreatorPasswordByEmailOfProvider(@Query() { email }: FindByEmailQuery) {
+    console.log('123');
+    await this.userService.findPasswordByEmail(email,false);
   }
 
   @Patch('/update')
@@ -107,12 +147,29 @@ export class UserController {
     return this.userService.findEmail(phone);
   }
 
+  @Get('/find/provider/:phone')
+  @ApiOperation({ summary: 'email 찾기' })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
+  async findEmailByProvider(@Param() phoneNumber: { phone: string }) {
+    const { phone } = phoneNumber;
+    return this.userService.findEmail(phone, false);
+  }
+
   @Get('/me')
   @ApiOperation({ summary: '로그인 여부' })
   @ApiResponse({ status: HttpStatus.OK })
 
   async me(@Req() req: Response, @Res() res: Response) {
     const isLogin = !!req['signedCookies']['authtoken'];
+    return res.status(200).send(isLogin);
+  }
+
+  @Get('/provider/me')
+  @ApiOperation({ summary: '로그인 여부(provider)' })
+  @ApiResponse({ status: HttpStatus.OK })
+  async providerLogin(@Req() req: Response, @Res() res: Response) {
+    const isLogin = !!req['signedCookies']['providerToken'];
     return res.status(200).send(isLogin);
   }
 

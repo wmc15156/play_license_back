@@ -50,6 +50,7 @@ export class UserService {
     private readonly buyerProductInfo: BuyerProductInfoRepository,
     @InjectRepository(BuyerProductInfoForEduRepository)
     private readonly buyerProductInfoForEdu: BuyerProductInfoForEduRepository,
+
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
     private readonly smsService: SmsService,
@@ -93,12 +94,8 @@ export class UserService {
       }
 
       const userInfo = createUserDto;
-      if (createUserDto.role === RolesEnum.USER) {
-        userRole = await this.roleService.getRole(RoleEnum.USER);
-      } else if (createUserDto.role === RolesEnum.PROVIDER) {
-        userRole = await this.roleService.getRole(RoleEnum.PROVIDER);
-      }
-      console.log('---------3---------');
+      userRole = await this.roleService.getRole(RoleEnum.USER);
+
       const phoneValidation = await this.phoneValidationRepository.findOne({
         where: {
           phone: userInfo.phone,
@@ -128,16 +125,25 @@ export class UserService {
     }
   }
 
-  async sendPhoneValidationNumber(phone: string) {
+  async sendPhoneValidationNumber(phone: string, skip=true) {
     const randomValidationNumber = random(110000, 999999, false) + '';
-
+    let userExist: User | ProviderAccount | null = null
     try {
-      const userExist = await this.userRepository.findOne({
-        where: {
-          phone,
-          // deletedAt: null,
-        },
-      });
+      if(skip) {
+        userExist = await this.userRepository.findOne({
+          where: {
+            phone,
+            deletedAt: null,
+          },
+        });
+      } else {
+        userExist = await this.providerAccountRepository.findOne({
+          where: {
+            phone,
+            deletedAt: null,
+          }
+        })
+      }
 
       if (userExist) {
         throw new BadRequestException('USER_ALREADY_EXIST');
@@ -174,7 +180,6 @@ export class UserService {
         where: { phone },
       });
 
-      console.log(phoneValidation);
 
       if (phoneValidation.validationCode !== code) {
         throw new BadRequestException({ fail: true });
@@ -189,7 +194,6 @@ export class UserService {
       const expiredAt = moment(phoneValidation.createdAt).add(3, 'minute');
       if (moment().isBefore(expiredAt)) {
         phoneValidation.isValid = code === phoneValidation.validationCode;
-        console.log(2);
         await this.phoneValidationRepository.save(phoneValidation);
         return phoneValidation.isValid;
       } else {
@@ -202,14 +206,25 @@ export class UserService {
     }
   }
 
-  async findOneByUserId(userId: number): Promise<User> {
-    const user = await this.userRepository.findOneOrFail({
-      where: {
-        userId,
-        // deletedAt: null,
-      },
-      relations: ['role'],
-    });
+  async findOneByUserId(userId: number, role=true): Promise<User | ProviderAccount> {
+    let user: User | ProviderAccount | null = null;
+    if(role) {
+      user = await this.userRepository.findOneOrFail({
+        where: {
+          userId,
+          deletedAt: null,
+        },
+        relations: ['role'],
+      });
+    }  else {
+      user = await this.providerAccountRepository.findOne({
+        where: {
+          providerId: userId,
+          deletedAt: null,
+        }
+      })
+    }
+
     return user;
   }
 
@@ -254,42 +269,96 @@ export class UserService {
     }
   }
 
-  async findPasswordByEmail({ email }: { email: string }) {
+  async findOneWithProviderInfo(email: string): Promise<any> {
     try {
-      const user = await this.userRepository.findOne({
+      const user = await this.providerAccountRepository.findOne({
         where: {
-          email,
-          // deletedAt: null,
-        },
+          email
+        }
       });
 
       if (!user) {
         throw new NotFoundException('USER_NOT_FOUND');
       }
 
-      await this.setTempPasswordAndSendTempPasswordByEmail({
-        user,
-        email,
+      if (user.deletedAt !== null) {
+        throw new BadRequestException('DELETED_USER');
+      }
+
+      const userPasswd = await this.providerAccountRepository.findOne({
+        where: {
+          email,
+        },
+        order: {
+          providerId: 'DESC',
+        },
+        select: ['password']
       });
+
+      if (userPasswd.password) {
+        user.password = userPasswd.password;
+      }
+
+      return user;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+
+  async findPasswordByEmail(email: string, skip=true) {
+    let user: | User | ProviderAccount | null = null;
+    try {
+      if(skip) {
+        user = await this.userRepository.findOne({
+          where: {
+            email,
+            deletedAt: null,
+          },
+        });
+        await this.setTempPasswordAndSendTempPasswordByEmail(
+          user,
+          email,
+        );
+      } else {
+        user = await this.providerAccountRepository.findOne({
+          where: {
+            email,
+            deletedAt: null
+          }
+        })
+         await this.setTempPasswordAndSendTempPasswordByEmail(
+          user,
+          email,
+          false,
+        );
+      }
     } catch (err) {
       throw err;
     }
   }
 
-  async setTempPasswordAndSendTempPasswordByEmail({
-                                                    user,
-                                                    email,
-                                                  }: {
-    user: User;
-    email: string;
-  }) {
+  async setTempPasswordAndSendTempPasswordByEmail( user: User | ProviderAccount, email, skip=true ) {
+
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
     const tempPassword = cryptoRandomString({ length: 10 });
     const hashed = await this.hashPassword(tempPassword);
+    if(skip) {
+      await this.userRepository.save({
+        ...user,
+        password: hashed,
+      });
+    } else {
+      await this.providerAccountRepository.save({
+        ...user,
+        password: hashed,
+      })
+    }
 
-    await this.userRepository.save({
-      ...user,
-      password: hashed,
-    });
 
     if (email) {
       await this.emailService.sendEmail({
@@ -432,14 +501,13 @@ export class UserService {
     try {
       const findAdmin = await this.userRepository.findOne({
         email,
-        // deletedAt: null,
+        deletedAt: null,
       });
 
       if (findAdmin) {
         throw new ConflictException('DUPLICATED_EMAIL');
       }
       const adminRole = await this.roleService.getRole(RoleEnum.ADMIN);
-      console.log('here');
       const createAdmin = await this.userRepository.save({
         email,
         password: hashedPassword,
@@ -447,10 +515,9 @@ export class UserService {
         phone: 'admin',
         role: adminRole,
         createdAt: new Date(),
-        // deletedAt: null,
+        deletedAt: null,
         updatedAt: new Date(),
       });
-
       return createAdmin;
     } catch (err) {
       console.error('error', err);
@@ -472,8 +539,18 @@ export class UserService {
     }
   }
 
-  async findEmail(phone: string): Promise<any> {
-    const data: User = await this.userRepo.findEmail(phone);
+  async findEmail(phone: string, skip=true): Promise<any> {
+
+    let data: User | ProviderAccount | null = null;
+
+    if(skip) {
+      data = await this.userRepo.findEmail(phone);
+    } else {
+      data = await this.providerAccountRepository.findOne({
+        phone
+      })
+    }
+
     let { email } = data;
 
     const len = email.split('@')[0].length - 4;

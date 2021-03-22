@@ -118,6 +118,8 @@ export class AuthService {
       payload = { userId, provider };
     }
 
+    console.log(payload);
+
     const jwt: string = sign(
       payload,
       this.dotEnvConfigService.get('JWT_SECRET_KEY'),
@@ -140,7 +142,27 @@ export class AuthService {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(isMatch)
+    if (isMatch) {
+      const { password: userPasswd, ...result } = user;
+      // 패스워드를 제외한 나머지 데이터 return
+      return result;
+    } else {
+      throw new BadRequestException('WRONG_PASSWORD');
+    }
+  }
+
+  async ValidateProviderUser({ email, password }: { email: string; password: string }) {
+    const user = await this.userService.findOneWithProviderInfo(email);
+
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException('OAUTH_SIGNUP');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
       const { password: userPasswd, ...result } = user;
       // 패스워드를 제외한 나머지 데이터 return
@@ -172,17 +194,6 @@ export class AuthService {
         refreshToken,
       });
 
-      // const loginInfo = new LoginInfo();
-      // loginInfo.provider = AuthProviderEnum.GOOGLE;
-      // loginInfo.createdAt = new Date();
-      // await this.loginInfoRepository.save(loginInfo);
-      //
-      // const newGoogleLogin = await this.googleLoginRepository.save({
-      //   oauthId,
-      //   accessToken,
-      //   refreshToken,
-      //   loginInfo: loginInfo,
-      // });
 
       return newGoogleLogin;
     } catch (error) {
@@ -242,7 +253,7 @@ export class AuthService {
     provider: AuthProviderEnum,
     email: string,
     done: Function,
-  ): Promise<User | null> {
+  ): Promise<User | ProviderAccount> {
     let loginInfo: LoginInfo | null = null;
     switch (provider) {
       case AuthProviderEnum.GOOGLE:
@@ -292,6 +303,7 @@ export class AuthService {
       try {
         const foundUser = await this.userService.findOneByUserId(
           loginInfoWithUser.user.userId,
+          false,
         );
         return foundUser;
       } catch (error) {
@@ -343,7 +355,6 @@ export class AuthService {
         where: { userId, deletedAt: null },
         relations: ['role'],
       });
-      console.log(oneUser.role.role);
       if (oneUser) {
         if (oneUser.role.role === RoleEnum.USER) {
           const loginInfo = await this.loginInfoRepository.findOne({
@@ -369,26 +380,24 @@ export class AuthService {
     fullName: string,
     company: string,
     password: string,
+    phone: string,
   ) {
     try {
       const findProvider = await this.providerRepository.findOne({
         email,
       });
 
-      const findUser = await this.userRepository.findOne({
-        email,
-      });
-
-      if (findProvider || findUser) {
+      if (findProvider) {
         throw new ConflictException('DUPLICATED_EMAIL');
       }
-      const hashedPassword = this.userService.hashPassword(password);
+      const hashedPassword = await this.userService.hashPassword(password);
 
       return await this.providerRepository.save({
         email,
         fullName,
         company,
         password: hashedPassword,
+        phone,
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,

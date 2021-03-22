@@ -17,6 +17,8 @@ import { NaverStrategy } from './strategies/naver.strategy';
 import { JwtOauthStrategy } from './strategies/jwtOauth.strategy';
 import { User } from '../user/entity/user.entity';
 import { ProviderAccount } from './entity/providerAccount.entity';
+import { ProviderLocalStrategy } from './strategies/provider.local.strategy';
+import { JwtProviderStrategy } from './strategies/jwt.provider.strategy';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { ProviderAccount } from './entity/providerAccount.entity';
     KakaoStrategy,
     NaverStrategy,
     JwtOauthStrategy,
+    ProviderLocalStrategy,
+    JwtProviderStrategy,
   ],
   exports: [AuthService],
 })

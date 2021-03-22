@@ -23,6 +23,7 @@ import { UserRepo } from '../user/user.repository';
 import { BuyerInfo } from './type/typed';
 
 import * as _ from 'lodash';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
@@ -50,6 +51,8 @@ export class ProductService {
     private readonly buyerProductInfoForEduRepository: Repository<BuyerProductInfoForEdu>,
     @InjectRepository(UserRepo)
     private readonly userRepo,
+    @InjectRepository(ProviderAccount)
+    private readonly providerAccountRepository: Repository<ProviderAccount>
   ) {}
 
   async createProduct(
@@ -60,7 +63,7 @@ export class ProductService {
     const { email, userId } = user;
     const addPriceToVar: object = {};
     try {
-      const findUser = await this.userRepository.findOne({
+      const findUser = await this.providerAccountRepository.findOne({
         where: { email },
       });
 
@@ -68,9 +71,9 @@ export class ProductService {
         throw new BadRequestException('NO_USER');
       }
 
-      createProductDto.selectMaterials.forEach((item) => {
-        addPriceToVar[item] = '0원';
-      });
+      // createProductDto.selectMaterials.forEach((item) => {
+      //   addPriceToVar[item] = '0원';
+      // });
 
       const created = await this.productRepository.save({
         title: createProductDto.title,
@@ -79,11 +82,11 @@ export class ProductService {
         name: createProductDto.name,
         phone: createProductDto.phone,
         brokerageConsignment: createProductDto.brokerageConsignment.join(','),
-        requiredMaterials: createProductDto.requiredMaterials.join(','),
-        selectMaterials: addPriceToVar,
+        requiredMaterials: createProductDto.requiredMaterials,
+        selectMaterials: createProductDto.selectMaterials,
         comment: createProductDto.comment,
         creativeStaff: createProductDto.creativeStaff,
-        genre: createProductDto.genre,
+        genre: JSON.stringify(createProductDto.genre),
         mainAudience: createProductDto.mainAudience,
         sizeOfPerformance: createProductDto.sizeOfPerformance,
         castMembers: createProductDto.castMembers,
@@ -95,10 +98,13 @@ export class ProductService {
         pcBackground: createProductDto.pcBackground,
         mobileBackground: createProductDto.mobileBackground,
         performanceInformationURL: createProductDto.performanceInformationURL,
-        numberList: createProductDto.numberList,
+        numberList: JSON.stringify(createProductDto.numberList),
         isCheckInformation: createProductDto.isCheckInformation,
         category: createProductDto.category,
         year: createProductDto.year,
+        creativeStaff_total: createProductDto.creativeStaff_total,
+        totalTime: createProductDto.totalTime,
+        provider: findUser,
         progress: ProgressEnum.INPROGRESS,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -115,7 +121,8 @@ export class ProductService {
   async convertProductData(product): Promise<any> {
     console.log('product', product);
     const { updatedAt, deletedAt, isCheckInformation, ...result } = product;
-    console.log(result);
+    result.genre = JSON.parse(result.genre);
+    result.numberList = JSON.parse(result.numberList);
     result.createdAt = moment(product.createdAt).format('YYYY-MM-DD');
     return result;
   }
@@ -225,6 +232,7 @@ export class ProductService {
     const { updatedAt, deletedAt, user, ...result } = buyerProduct;
     result.requiredMaterials = result.requiredMaterials.split(',');
     result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
+    result.plan = JSON.parse(result.plan);
     return result;
   }
 
@@ -304,6 +312,7 @@ export class ProductService {
     console.log(findProduct,123)
   }
 
+  // category 목적 제거 및 배열로 변환
   async convertProductsData(product: any): Promise<any> {
     const data =  product.map((item) => {
       const { updatedAt, deletedAt, castMembers, changeScenario,...result } = item;

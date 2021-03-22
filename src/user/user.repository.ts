@@ -84,24 +84,6 @@ export class UserRepo extends Repository<User> {
   }
 
   async withdrawAnInquiryForEducation(userId: number, id: number) {
-    // let data:any = await this.findOne({
-    //   where: {
-    //     userId
-    //   },
-    //   relations: ['buyerProductInfoEdu'],
-    // });
-    //
-    // data = data.buyerProductInfoEdu.map((ele) => {
-    //   if(ele.productId === id) {
-    //     ele.progress = BuyerProgressEnum.CANCELED;
-    //     ele.admin_check = BuyerProgressEnum.CANCELED;
-    //     return ele;
-    //   }
-    //   console.log(ele);
-    //   return ele;
-    // });
-    // await this.save(data);
-
     let productId = 0;
     let data:any = await this.findOne({
       where: {

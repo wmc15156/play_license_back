@@ -25,7 +25,7 @@ export class ImageController {
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
-    summary: '공연포스터 이미지 업로드',
+    summary: '공연포스터 이미지 업로드 또는 pdf 파일 저장',
   })
   @ApiImplicitFile({
     name: 'file',
@@ -40,7 +40,8 @@ export class ImageController {
     //   mimetype: 'image/jpeg',
     //   buffer: <Buffer ff d8 ff e0 00 10 4a 46 49 46 00 01 01 00 00 01 00 01 00 00 ff ed 00 6c 50 68 6f 74 6f 73 68 6f 70 20 33 2e 30 00 38 42 49 4d 04 04 00 00 00 00 00 4f ... 98283 more bytes>,
     //   size: 98333
-    const { originalname } = file;
+    const { originalname, mimetype } = file;
+    console.log(file);
     const dirName = 'poster';
     try {
       const imageURL = await this.fileUploadService.uploadS3(
@@ -48,6 +49,7 @@ export class ImageController {
         this.BUCKET_NAME,
         originalname,
         dirName,
+        mimetype
       );
       const { Location, Key } = imageURL;
       const filename = Key.split('/')[1];
@@ -71,7 +73,7 @@ export class ImageController {
   @ApiResponse({ status: 201, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized' })
   async uploadImageForMobile(@UploadedFile() file) {
-    const { originalname } = file;
+    const { originalname, mimetype } = file;
     const dirName = 'mobileBackground';
     try {
       const imageURL = await this.fileUploadService.uploadS3(
@@ -79,6 +81,7 @@ export class ImageController {
         this.BUCKET_NAME,
         originalname,
         dirName,
+        mimetype
       );
       const { Location, Key } = imageURL;
       const filename = Key.split('/')[1];
@@ -101,7 +104,7 @@ export class ImageController {
   @ApiResponse({ status: 201, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized' })
   async uploadImageForPC(@UploadedFile() file): Promise<ImageResponseURL> {
-    const { orginalname } = file;
+    const { orginalname, mimetype } = file;
     const dirname = 'pcBackground';
 
     try {
@@ -110,6 +113,7 @@ export class ImageController {
         this.BUCKET_NAME,
         orginalname,
         dirname,
+        mimetype
       );
       const { Location, Key } = imageURL;
       const filename = Key.split('/')[1];

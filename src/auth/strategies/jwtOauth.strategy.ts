@@ -17,7 +17,7 @@ export class JwtOauthStrategy extends PassportStrategy(Strategy, 'jwtOauth') {
       jwtFromRequest: (req: Request) => {
         console.log('here', req.signedCookies);
         let token = null;
-        if (req && req.signedCookies['authtoken']) {
+        if (req && req.signedCookies['Oauthtoken']) {
           return token;
         }
       },
@@ -27,7 +27,7 @@ export class JwtOauthStrategy extends PassportStrategy(Strategy, 'jwtOauth') {
   async validate(payload: any, done: (err: any, payload: any) => void) {
     try {
       const { userId } = payload;
-      const user = await this.userService.findOneByUserId(userId);
+      const user = await this.userService.findOneByUserId(userId, false);
 
       done(null, user);
     } catch (err) {

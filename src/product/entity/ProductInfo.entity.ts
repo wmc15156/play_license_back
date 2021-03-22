@@ -14,6 +14,7 @@ import { CurationInfo } from '../../curation/entity/CurationInfo.entity';
 import { Question } from '../../question/entity/question.entity';
 import { BuyerProductInfo } from './BuyerProductInfo.entity';
 import { BuyerProductInfoForEdu } from './BuyerProductInfoForEdu.entity';
+import { ProviderAccount } from '../../auth/entity/providerAccount.entity';
 
 
 export enum ProgressEnum {
@@ -48,8 +49,8 @@ export class ProviderProductInfo {
   brokerageConsignment: string;
 
   //필수제공자료
-  @Column()
-  requiredMaterials: string;
+  @Column({ type: 'json' })
+  requiredMaterials: object;
 
   @Column({ type: 'json' })
   selectMaterials: object;
@@ -123,6 +124,8 @@ export class ProviderProductInfo {
   @Column()
   creativeStaff_total: number;
 
+  @Column({ type: 'json' })
+  totalTime: object
 
   @CreateDateColumn()
   createdAt: Date | string;
@@ -138,6 +141,9 @@ export class ProviderProductInfo {
   })
   @JoinTable({ name: 'user_product_cart' })
   users: User[];
+
+  @ManyToOne((type) => ProviderAccount, (provider) => provider.products)
+  provider: ProviderAccount;
 
   @ManyToMany((type) => CurationInfo, curation => curation.productInfo)
   @JoinTable({ name: 'curation_product' })

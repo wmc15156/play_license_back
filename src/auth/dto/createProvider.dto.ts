@@ -31,4 +31,11 @@ export class CreateProviderDto {
   @IsString()
   @IsOptional()
   company: string;
+
+  @ApiModelProperty({
+    example: '001000000',
+    description: '휴대폰 번호'
+  })
+  @IsString()
+  phone: string;
 }
