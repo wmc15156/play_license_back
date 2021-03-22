@@ -22,7 +22,7 @@ import { RolesGuard } from '../roles/roles.guard';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { User } from '../user/entity/user.entity';
 import { ProgressEnum, ProviderProductInfo } from './entity/ProductInfo.entity';
-import { GetUser } from '../decorator/create-user.decorator';
+import { GetProviderUser, GetUser } from '../decorator/create-user.decorator';
 import { CreateProductByBuyerDto } from './dto/createProductByBuyer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -30,6 +30,7 @@ import { BuyerProductInfo } from './entity/BuyerProductInfo.entity';
 import { CreateProductByUserForEducationalDto } from './dto/createProductByUserForEducational.dto';
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
 import { constants } from 'http2';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 
 @ApiTags('product(작품등록)')
@@ -80,7 +81,6 @@ export class ProductController {
   @ApiOperation({ summary: '해당 작품 정보전송' })
   async getProduct(@Param('productId', ParseIntPipe) id:number) {
     const result =  await this.productService.getProduct(id);
-    console.log(result);
     return this.productService.convertProductData(result);
   }
 
@@ -103,6 +103,38 @@ export class ProductController {
 
     const result = await this.productService.convertProductData(product);
     return res.status(201).json({ result });
+  }
+
+  @Get('/provider')
+  @ApiOperation({ summary: '제작사 작품등록 정보' })
+  @Roles(RoleEnum.PROVIDER)
+  @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
+  @ApiResponse({ status: 201, description: 'success' })
+  @ApiResponse({ status: 403, description: 'Forbidden resource' })
+  async getProductInfo(
+    @GetProviderUser() user: ProviderAccount,
+  ) {
+    return await this.productService.getProductInfo(user);
+  }
+
+  @Get('/provider/info')
+  @ApiOperation({ summary: '제작사 해당 작품들 정보(찜하기 수, 클릭수)'})
+  @Roles(RoleEnum.PROVIDER)
+  @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse( { status: HttpStatus.BAD_REQUEST })
+  async getProviderInfo(@GetProviderUser() user: ProviderAccount) {
+    return await this.productService.getProviderInfo(user);
+  }
+
+  @Get('/provider/sold/info')
+  @ApiOperation({ summary: '현재 판매중인 작품'})
+  @Roles(RoleEnum.PROVIDER)
+  @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse( { status: HttpStatus.BAD_REQUEST })
+  async getProviderSoldInfo(@GetProviderUser() user: ProviderAccount) {
+    return await this.productService.getProviderSoldInfo(user);
   }
 
   @Post('/buyer')

@@ -19,8 +19,8 @@ import { ProviderAccount } from '../../auth/entity/providerAccount.entity';
 
 export enum ProgressEnum {
   INPROGRESS = '관리자검토중',
-  NEED_SUPPLEMENT = '보완필요',
-  COMPLETED = '등록완료',
+  NEED_SUPPLEMENT = '보완요청',
+  COMPLETED = '승인완료',
   DELETED = '철회완료'
 }
 

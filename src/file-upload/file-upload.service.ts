@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AwsService } from '../aws/aws.service';
-import * as PDFDoc from 'pdfkit';
-import * as fs from 'fs';
 import { Readable } from 'stream';
 
 @Injectable()

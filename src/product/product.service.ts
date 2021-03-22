@@ -24,6 +24,8 @@ import { BuyerInfo } from './type/typed';
 
 import * as _ from 'lodash';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
+import changeDateFormat from '../utils/chagneDate';
+import { convertToArray } from '../utils/chageDataType';
 
 export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
@@ -119,7 +121,6 @@ export class ProductService {
   }
 
   async convertProductData(product): Promise<any> {
-    console.log('product', product);
     const { updatedAt, deletedAt, isCheckInformation, ...result } = product;
     result.genre = JSON.parse(result.genre);
     result.numberList = JSON.parse(result.numberList);
@@ -438,5 +439,28 @@ export class ProductService {
     return this.filteredProductData(product);
   }
 
+  async getProviderInfo(user: ProviderAccount) {
+    const { providerId } = user;
+    const views =  await this.productRepo.getProvider(providerId);
+    const count = await this.productRepo.countLike(providerId);
+    return { views: views[0].views, count: count[0].count, buy: '0' };
+  }
+
+  // 제작사가 가지고 있는 작품정보들
+  async getProductInfo(user: ProviderAccount) {
+    const { providerId } = user;
+    const result =  await this.productRepo.getProductInfoByProvider(providerId);
+    return result.map((elem) => {
+      elem.createdAt = changeDateFormat(elem.createdAt);
+      return elem;
+    });
+  }
+
+  // 현재 판매 중인 작품
+  async getProviderSoldInfo(user: ProviderAccount) {
+    const result = await this.productRepo.getProviderSoldInfo(user.providerId);
+    console.log(result);
+    return convertToArray(result);
+  }
 
 }
