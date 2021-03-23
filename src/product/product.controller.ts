@@ -1,9 +1,12 @@
 import {
   Body,
-  Controller, Delete,
-  Get, HttpStatus,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -31,7 +34,8 @@ import { CreateProductByUserForEducationalDto } from './dto/createProductByUserF
 import { ApiImplicitQuery } from '@nestjs/swagger/dist/decorators/api-implicit-query.decorator';
 import { constants } from 'http2';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
-
+import { UpdateRequirementsDto } from './dto/updateRequirements.dto';
+import { UpdateSelectsDto } from './dto/updateSelects.dto';
 
 @ApiTags('product(작품등록)')
 @Controller('product')
@@ -42,12 +46,11 @@ export class ProductController {
     private readonly buyerRepository: Repository<BuyerProductInfo>,
   ) {}
 
-
   @Get('/filter/:selectData')
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   @ApiOperation({ summary: '마켓페이지에서 "선택하세요" 필터링' })
-  async filterSelectData(@Param('selectData') selectData:string) {
+  async filterSelectData(@Param('selectData') selectData: string) {
     return await this.productService.filterSelectData(selectData);
   }
 
@@ -59,7 +62,7 @@ export class ProductController {
   @ApiImplicitQuery({ name: 'sizeOfPerformance', type: 'string' })
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
-  @ApiOperation({ summary: '마켓페이지 "필터링 찾기" 필터링'})
+  @ApiOperation({ summary: '마켓페이지 "필터링 찾기" 필터링' })
   async filteredData(
     @Query('numberOfMembers') numberOfMembers: string,
     @Query('category') category: string,
@@ -68,19 +71,26 @@ export class ProductController {
     @Query('sizeOfPerformance') sizeOfPerformance: string,
   ) {
     const regExp = /미만/gi;
-    const expression = numberOfMembers.match(regExp)
-    numberOfMembers.replace(/[^0-9]/g,"")
-    const totalNumber = parseInt(numberOfMembers.replace(/[^0-9]/g,""));
+    const expression = numberOfMembers.match(regExp);
+    numberOfMembers.replace(/[^0-9]/g, '');
+    const totalNumber = parseInt(numberOfMembers.replace(/[^0-9]/g, ''));
 
-    return this.productService.filterData(totalNumber, expression, category, genre, mainAudience,sizeOfPerformance);
+    return this.productService.filterData(
+      totalNumber,
+      expression,
+      category,
+      genre,
+      mainAudience,
+      sizeOfPerformance,
+    );
   }
 
   @Get('/info/:productId')
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   @ApiOperation({ summary: '해당 작품 정보전송' })
-  async getProduct(@Param('productId', ParseIntPipe) id:number) {
-    const result =  await this.productService.getProduct(id);
+  async getProduct(@Param('productId', ParseIntPipe) id: number) {
+    const result = await this.productService.getProduct(id);
     return this.productService.convertProductData(result);
   }
 
@@ -111,28 +121,26 @@ export class ProductController {
   @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
   @ApiResponse({ status: 201, description: 'success' })
   @ApiResponse({ status: 403, description: 'Forbidden resource' })
-  async getProductInfo(
-    @GetProviderUser() user: ProviderAccount,
-  ) {
+  async getProductInfo(@GetProviderUser() user: ProviderAccount) {
     return await this.productService.getProductInfo(user);
   }
 
   @Get('/provider/info')
-  @ApiOperation({ summary: '제작사 해당 작품들 정보(찜하기 수, 클릭수)'})
+  @ApiOperation({ summary: '제작사 해당 작품들 정보(찜하기 수, 클릭수)' })
   @Roles(RoleEnum.PROVIDER)
   @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
   @ApiResponse({ status: HttpStatus.OK })
-  @ApiResponse( { status: HttpStatus.BAD_REQUEST })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async getProviderInfo(@GetProviderUser() user: ProviderAccount) {
     return await this.productService.getProviderInfo(user);
   }
 
   @Get('/provider/sold/info')
-  @ApiOperation({ summary: '현재 판매중인 작품'})
+  @ApiOperation({ summary: '현재 판매중인 작품' })
   @Roles(RoleEnum.PROVIDER)
   @UseGuards(AuthGuard('jwtByProvider'), RolesGuard)
   @ApiResponse({ status: HttpStatus.OK })
-  @ApiResponse( { status: HttpStatus.BAD_REQUEST })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async getProviderSoldInfo(@GetProviderUser() user: ProviderAccount) {
     return await this.productService.getProviderSoldInfo(user);
   }
@@ -180,15 +188,14 @@ export class ProductController {
   }
 
   @Get('/buyer/cart')
-  @ApiOperation({ summary: 'buyer 문의내역 리스트'})
+  @ApiOperation({ summary: 'buyer 문의내역 리스트' })
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({ status: 200, description: 'success'})
-  @ApiResponse({ status: 400, description: 'bad request'})
-  async getBuyerInquiryDetails(@GetUser() user:User, @Res() res: Response){
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 400, description: 'bad request' })
+  async getBuyerInquiryDetails(@GetUser() user: User, @Res() res: Response) {
     const products = await this.productService.getBuyerInquiryDetails(user);
     return res.status(200).json(products);
   }
-
 
   @Get('/cart')
   @ApiOperation({ summary: '사용자가 찜한 데이터 가져오기' })
@@ -217,17 +224,17 @@ export class ProductController {
   }
 
   @Delete('/:productId/cart')
-  @ApiOperation({ summary: '찜한 작품삭제'})
+  @ApiOperation({ summary: '찜한 작품삭제' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.FORBIDDEN })
   async deleteWishProduct(
     @GetUser() user: User,
     @Res() res: Response,
-    @Param('productId', ParseIntPipe) id: number
-  ):Promise<any> {
-   await this.productService.deleteWishProduct(id, user);
-   return res.status(200).send('OK');
+    @Param('productId', ParseIntPipe) id: number,
+  ): Promise<any> {
+    await this.productService.deleteWishProduct(id, user);
+    return res.status(200).send('OK');
   }
 
   @Get('/search')
@@ -242,36 +249,50 @@ export class ProductController {
     @Res() res: Response,
   ) {
     const product = await this.productService.searchProduct(query, page);
-    if(product.length === 0) {
+    if (product.length === 0) {
       return res.status(200).json([]);
     }
     const result = await this.productService.convertProductsData(product);
     return res.status(200).json(result);
   }
 
-  @Get('/admin')
-  
-
-
-  @Post('/')
-  async test(@Body() data: string) {
-    const comment = '중앙';
-    const result = await this.buyerRepository
-      .createQueryBuilder('buyer')
-      .where('buyer.introduction like :value', { value: `%${comment}%` })
-      .andWhere('buyer.spot like :spot', { spot: `%${data['data']}%` })
-      .skip(0)
-      .take(10)
-      .getMany();
-
-    console.log(result);
+  @Patch('/requirements/:productId')
+  @ApiOperation({ summary: '필수 제공 자료 수정 ' })
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiResponse({ status: HttpStatus.OK, description: 'success' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async modifyMaterials(
+    @GetProviderUser() user: ProviderAccount,
+    @Body(ValidationPipe) updateRequirements: UpdateRequirementsDto,
+    @Param('productId', ParseIntPipe) id: number,
+  ) {
+    return this.productService.modifyMaterials(updateRequirements, id)
   }
 
+  @Patch('/selectMaterial/:productId')
+  @ApiOperation({ summary: '필수 제공 자료 수정 ' })
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiResponse({ status: HttpStatus.OK, description: 'success' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async modifyMaterialsBySelectMaterial(
+    @GetProviderUser() user: ProviderAccount,
+    @Body(ValidationPipe) updateSelects: UpdateSelectsDto,
+    @Param('productId', ParseIntPipe) id: number,
+  ) {
+    return this.productService.modifySelectMaterial(updateSelects, id)
+  }
 
-
-  @Post('/test')
-  async test2(@Body() data:string) {
-    await this.productService.test2(data);
-    return ;
+  // 작품 정보 수정
+  @Patch('/:productId')
+  @ApiOperation({ summary: '필수 제공 자료 수정 ' })
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiResponse({ status: HttpStatus.OK, description: 'success' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async modifyProductData(
+    @GetProviderUser() user: ProviderAccount,
+    @Body(ValidationPipe) updateProductData: CreateProductDto,
+    @Param('productId', ParseIntPipe) id: number,
+  ) {
+    return this.productService.modifyProductData(updateProductData, id)
   }
 }

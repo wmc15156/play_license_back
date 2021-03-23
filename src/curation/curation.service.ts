@@ -100,7 +100,7 @@ export class CurationService {
         {
           curationImage: cur.curation_image,
           productTitle: cur.product_title,
-          productImage: cur.product_poster,
+          productImage: cur.product_posterURL,
           productId: cur.product_productId,
           productCompany: cur.product_company,
           productYear: cur.product_year,
@@ -114,6 +114,7 @@ export class CurationService {
     });
   }
 
+  // 배열 / 객체 변환
   convertProductInfo(data: any, skip=true) {
       return data.map((cur) => {
         if(skip) {

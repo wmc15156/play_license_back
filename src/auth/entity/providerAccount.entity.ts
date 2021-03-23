@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ProviderProductInfo } from '../../product/entity/ProductInfo.entity';
+import { Question } from '../../question/entity/question.entity';
 
 @Entity()
 export class ProviderAccount {
@@ -51,4 +52,7 @@ export class ProviderAccount {
 
   @OneToMany((type) => ProviderProductInfo, (product) => product.provider)
   products: ProviderProductInfo[]
+
+  @OneToMany((type) => Question, (question) => question.provider)
+  questions: Question[]
 }

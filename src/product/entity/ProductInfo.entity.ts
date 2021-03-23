@@ -93,7 +93,7 @@ export class ProviderProductInfo {
 
   //공연포스터
   @Column()
-  poster: string;
+  posterURL: string;
 
   //배경이미지 PC
   @Column()

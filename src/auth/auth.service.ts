@@ -75,7 +75,7 @@ export class AuthService {
                 oauthId,
               },
             });
-            console.log(googleLogin,'here');
+            console.log(googleLogin, 'here');
             googleLogin.loginInfo = newLoginInfo;
             await this.googleLoginRepository.save(googleLogin);
             break;
@@ -151,7 +151,13 @@ export class AuthService {
     }
   }
 
-  async ValidateProviderUser({ email, password }: { email: string; password: string }) {
+  async ValidateProviderUser({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) {
     const user = await this.userService.findOneWithProviderInfo(email);
 
     if (!user) {
@@ -193,7 +199,6 @@ export class AuthService {
         accessToken,
         refreshToken,
       });
-
 
       return newGoogleLogin;
     } catch (error) {
@@ -373,6 +378,14 @@ export class AuthService {
     } catch (err) {
       throw err;
     }
+  }
+
+  async finProviderInformation(user: ProviderAccount) {
+    const provider = await this.providerRepository.findOne(user.providerId);
+    if (!user) {
+      throw new NotFoundException('NO User Information');
+    }
+    return provider;
   }
 
   async createProvider(

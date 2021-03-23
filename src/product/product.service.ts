@@ -26,13 +26,15 @@ import * as _ from 'lodash';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 import changeDateFormat from '../utils/chagneDate';
 import { convertToArray } from '../utils/chageDataType';
+import { UpdateRequirementsDto } from './dto/updateRequirements.dto';
+import { UpdateSelectsDto } from './dto/updateSelects.dto';
 
 export class BuyerProduct extends BuyerProductInfo {
   requiredMaterial?: Array<string>;
 }
 
 export class ProviderProduct extends ProviderProductInfo {
-  brokerageConsignments?: string | string[]
+  brokerageConsignments?: string | string[];
   count?: number;
 }
 
@@ -54,7 +56,7 @@ export class ProductService {
     @InjectRepository(UserRepo)
     private readonly userRepo,
     @InjectRepository(ProviderAccount)
-    private readonly providerAccountRepository: Repository<ProviderAccount>
+    private readonly providerAccountRepository: Repository<ProviderAccount>,
   ) {}
 
   async createProduct(
@@ -96,7 +98,7 @@ export class ProductService {
         performanceVideo: createProductDto.performanceVideo,
         plan: createProductDto.planningDocument,
         synopsis: createProductDto.synopsis,
-        poster: createProductDto.posterURL,
+        posterURL: createProductDto.posterURL,
         pcBackground: createProductDto.pcBackground,
         mobileBackground: createProductDto.mobileBackground,
         performanceInformationURL: createProductDto.performanceInformationURL,
@@ -105,7 +107,7 @@ export class ProductService {
         category: createProductDto.category,
         year: createProductDto.year,
         creativeStaff_total: createProductDto.creativeStaff_total,
-        totalTime: createProductDto.totalTime,
+        totalTime: createProductDto.runningTime,
         provider: findUser,
         progress: ProgressEnum.INPROGRESS,
         createdAt: new Date(),
@@ -196,7 +198,7 @@ export class ProductService {
     try {
       const findUser = await this.userRepository.findOne(userId);
       const product = await this.productRepo.findOne(productId);
-      if(!product) {
+      if (!product) {
         throw new BadRequestException('no exist productId');
       }
 
@@ -220,7 +222,7 @@ export class ProductService {
         comment: createProductByUserDto.comment,
         progress: BuyerProgressEnum.REVIEW_ADMIN,
         user: findUser,
-        product
+        product,
       });
 
       return buyerProduct;
@@ -247,7 +249,7 @@ export class ProductService {
     try {
       const findUser = await this.userRepository.findOne(userId);
       const product = await this.productRepo.findOne(productId);
-      if(!product) {
+      if (!product) {
         throw new BadRequestException('no exist productId');
       }
       const created = await this.buyerProductInfoForEduRepository.save({
@@ -285,7 +287,7 @@ export class ProductService {
     page: number,
   ): Promise<ProviderProductInfo[]> {
     const pagination = page - 1;
-    if(!query) {
+    if (!query) {
       return [];
     }
     try {
@@ -310,98 +312,117 @@ export class ProductService {
       .createQueryBuilder('product2')
       .select('product2')
       .from(ProviderProductInfo, undefined)
-      .getMany()
-    console.log(findProduct,123)
+      .getMany();
+    console.log(findProduct, 123);
   }
 
   // category 목적 제거 및 배열로 변환
   async convertProductsData(product: any): Promise<any> {
-    const data =  product.map((item) => {
-      const { updatedAt, deletedAt, castMembers, changeScenario,...result } = item;
+    const data = product.map((item) => {
+      const {
+        updatedAt,
+        deletedAt,
+        castMembers,
+        changeScenario,
+        ...result
+      } = item;
       result.brokerageConsignments = result.brokerageConsignment.split(',');
-      result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
-        return cate.replace("목적","");
-      });
-      const {brokerageConsignment, ...results } = result;
+      result.brokerageConsignments = result.brokerageConsignments.map(
+        (cate) => {
+          return cate.replace('목적', '');
+        },
+      );
+      const { brokerageConsignment, ...results } = result;
       return results;
     });
     return data;
   }
 
-  async getBuyerInquiryDetails(user):Promise<Promise<BuyerProductInfoForEdu>[] | Promise<BuyerProductInfo>[]> {
+  async getBuyerInquiryDetails(
+    user,
+  ): Promise<Promise<BuyerProductInfoForEdu>[] | Promise<BuyerProductInfo>[]> {
     const { userId } = user;
     let sumProduct = [];
     try {
       const findUserAndProduct = await this.userRepository.find({
-        where: {userId},
-        relations: ['buyerProductInfo','buyerProductInfoEdu', 'products']
+        where: { userId },
+        relations: ['buyerProductInfo', 'buyerProductInfoEdu', 'products'],
       });
-      const buyerInfo: BuyerInfo[] = await this.userRepo.getBuyerInquiryDetails(userId);
+      const buyerInfo: BuyerInfo[] = await this.userRepo.getBuyerInquiryDetails(
+        userId,
+      );
 
-      const data = await Promise.all(buyerInfo.map((data) => {
-        if (data.buyerInfoProductId) {
-          return this.buyerProductRepository.createQueryBuilder('buyerInfo')
-            .leftJoinAndSelect('buyerInfo.product', 'product')
-            .where('buyerInfo.productId = :id', { id: data.buyerInfoProductId })
-            .select([
-              'buyerInfo.productId as questionId',
-              'buyerInfo.progress as adminCheck',
-              'buyerInfo.createdAt as createdAt',
-              'buyerInfo.category as category',
-              'product.title as title',
-            ])
-            .execute()
-        }
-        if(data.buyerInfoEduProductId) {
-          return this.buyerProductInfoForEduRepository.createQueryBuilder('buyerInfoEdu')
-            .leftJoinAndSelect('buyerInfoEdu.product', 'product')
-            .where('buyerInfoEdu.productId = :id', { id: data.buyerInfoEduProductId })
-            .select([
-              'buyerInfoEdu.productId as questionId',
-              'buyerInfoEdu.progress as adminCheck',
-              'buyerInfoEdu.createdAt as createdAt',
-              'buyerInfoEdu.category as category',
-              'product.title as title',
-            ])
-            .execute()
-        }
-      }))
+      const data = await Promise.all(
+        buyerInfo.map((data) => {
+          if (data.buyerInfoProductId) {
+            return this.buyerProductRepository
+              .createQueryBuilder('buyerInfo')
+              .leftJoinAndSelect('buyerInfo.product', 'product')
+              .where('buyerInfo.productId = :id', {
+                id: data.buyerInfoProductId,
+              })
+              .select([
+                'buyerInfo.productId as questionId',
+                'buyerInfo.progress as adminCheck',
+                'buyerInfo.createdAt as createdAt',
+                'buyerInfo.category as category',
+                'product.title as title',
+              ])
+              .execute();
+          }
+          if (data.buyerInfoEduProductId) {
+            return this.buyerProductInfoForEduRepository
+              .createQueryBuilder('buyerInfoEdu')
+              .leftJoinAndSelect('buyerInfoEdu.product', 'product')
+              .where('buyerInfoEdu.productId = :id', {
+                id: data.buyerInfoEduProductId,
+              })
+              .select([
+                'buyerInfoEdu.productId as questionId',
+                'buyerInfoEdu.progress as adminCheck',
+                'buyerInfoEdu.createdAt as createdAt',
+                'buyerInfoEdu.category as category',
+                'product.title as title',
+              ])
+              .execute();
+          }
+        }),
+      );
       const result = _.flatten(data);
 
-      return  result.map((product) => {
+      return result.map((product) => {
         const { updatedAt, deletedAt, ...result } = product;
         result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
         return result;
       });
-
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   }
 
-  async deleteWishProduct(id: number, me:User): Promise<null> {
+  async deleteWishProduct(id: number, me: User): Promise<null> {
     const product = await this.productRepository.findOne({
       where: {
-        productId: id
+        productId: id,
       },
-      relations: ['users']
+      relations: ['users'],
     });
-    if(!product) {
+    if (!product) {
       throw new ForbiddenException('product is not exist');
     }
     product.users = product.users.filter((user) => {
-      return user.userId !== me.userId
+      return user.userId !== me.userId;
     });
     await this.productRepository.save(product);
     return;
   }
 
-  async getProduct(id: number):Promise<any> {
-    const product:ProviderProduct = await this.productRepo.getProduct(id);
-    const { updatedAt, deletedAt,...result } = product;
+  async getProduct(id: number): Promise<any> {
+    const product: ProviderProduct = await this.productRepo.getProduct(id);
+    const { updatedAt, deletedAt, ...result } = product;
     result.brokerageConsignments = result.brokerageConsignment.split(',');
     result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
-      return cate.replace("목적","");
+      return cate.replace('목적', '');
     });
     const { brokerageConsignment, ...results } = result;
     return results;
@@ -414,14 +435,28 @@ export class ProductService {
   }
 
   async filteredProductData(productArr: ProviderProductInfo[]) {
-    const data =  productArr.map((item) => {
-      const { updatedAt, deletedAt, castMembers, changeScenario,...data } = item;
-      const result: ProviderProduct = item
+    const data = productArr.map((item) => {
+      const {
+        updatedAt,
+        deletedAt,
+        castMembers,
+        changeScenario,
+        ...data
+      } = item;
+      const result: ProviderProduct = item;
       result.brokerageConsignments = result.brokerageConsignment.split(',');
-      result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
-        return cate.replace("목적","");
-      });
-      const {brokerageConsignment, count, buyerProductForEducation, buyerProducts, ...results } = result;
+      result.brokerageConsignments = result.brokerageConsignments.map(
+        (cate) => {
+          return cate.replace('목적', '');
+        },
+      );
+      const {
+        brokerageConsignment,
+        count,
+        buyerProductForEducation,
+        buyerProducts,
+        ...results
+      } = result;
       return results;
     });
     return data;
@@ -433,15 +468,22 @@ export class ProductService {
     category: string,
     genre: string,
     mainAudience: string,
-    sizeOfPerformance: string
-    ) {
-    const product =  await this.productRepo.filterData(totalNumber, expression, category,genre,mainAudience, sizeOfPerformance);
+    sizeOfPerformance: string,
+  ) {
+    const product = await this.productRepo.filterData(
+      totalNumber,
+      expression,
+      category,
+      genre,
+      mainAudience,
+      sizeOfPerformance,
+    );
     return this.filteredProductData(product);
   }
 
   async getProviderInfo(user: ProviderAccount) {
     const { providerId } = user;
-    const views =  await this.productRepo.getProvider(providerId);
+    const views = await this.productRepo.getProvider(providerId);
     const count = await this.productRepo.countLike(providerId);
     return { views: views[0].views, count: count[0].count, buy: '0' };
   }
@@ -449,7 +491,7 @@ export class ProductService {
   // 제작사가 가지고 있는 작품정보들
   async getProductInfo(user: ProviderAccount) {
     const { providerId } = user;
-    const result =  await this.productRepo.getProductInfoByProvider(providerId);
+    const result = await this.productRepo.getProductInfoByProvider(providerId);
     return result.map((elem) => {
       elem.createdAt = changeDateFormat(elem.createdAt);
       return elem;
@@ -459,8 +501,25 @@ export class ProductService {
   // 현재 판매 중인 작품
   async getProviderSoldInfo(user: ProviderAccount) {
     const result = await this.productRepo.getProviderSoldInfo(user.providerId);
-    console.log(result);
     return convertToArray(result);
+  }
+
+  // 필수 제공 자료 업데이트
+  async modifyMaterials(
+    updateData: UpdateRequirementsDto,
+    id: number,
+  ) {
+
+    return await this.productRepo.modifyMaterials(updateData, id);
+  }
+  // 선택 제공 자료 수정
+  async modifySelectMaterial(updateData: UpdateSelectsDto, id) {
+    return this.productRepo.modifySelectMaterial(updateData, id)
+  }
+
+  // 모든 데이터 수정
+  async modifyProductData(productData: CreateProductDto, id) {
+    return this.productRepo.modifyProductData(productData, id);
   }
 
 }

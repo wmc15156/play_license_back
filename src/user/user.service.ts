@@ -55,8 +55,7 @@ export class UserService {
     private readonly roleService: RolesService,
     private readonly smsService: SmsService,
     private readonly emailService: EmailService,
-  ) {
-  }
+  ) {}
 
   async hashPassword(password: string) {
     return bcrypt.hash(password, 12);
@@ -125,11 +124,11 @@ export class UserService {
     }
   }
 
-  async sendPhoneValidationNumber(phone: string, skip=true) {
+  async sendPhoneValidationNumber(phone: string, skip = true) {
     const randomValidationNumber = random(110000, 999999, false) + '';
-    let userExist: User | ProviderAccount | null = null
+    let userExist: User | ProviderAccount | null = null;
     try {
-      if(skip) {
+      if (skip) {
         userExist = await this.userRepository.findOne({
           where: {
             phone,
@@ -141,8 +140,8 @@ export class UserService {
           where: {
             phone,
             deletedAt: null,
-          }
-        })
+          },
+        });
       }
 
       if (userExist) {
@@ -180,7 +179,6 @@ export class UserService {
         where: { phone },
       });
 
-
       if (phoneValidation.validationCode !== code) {
         throw new BadRequestException({ fail: true });
       }
@@ -206,9 +204,12 @@ export class UserService {
     }
   }
 
-  async findOneByUserId(userId: number, role=true): Promise<User | ProviderAccount> {
+  async findOneByUserId(
+    userId: number,
+    role = true,
+  ): Promise<User | ProviderAccount> {
     let user: User | ProviderAccount | null = null;
-    if(role) {
+    if (role) {
       user = await this.userRepository.findOneOrFail({
         where: {
           userId,
@@ -216,13 +217,13 @@ export class UserService {
         },
         relations: ['role'],
       });
-    }  else {
+    } else {
       user = await this.providerAccountRepository.findOne({
         where: {
           providerId: userId,
           deletedAt: null,
-        }
-      })
+        },
+      });
     }
 
     return user;
@@ -273,8 +274,8 @@ export class UserService {
     try {
       const user = await this.providerAccountRepository.findOne({
         where: {
-          email
-        }
+          email,
+        },
       });
 
       if (!user) {
@@ -292,7 +293,7 @@ export class UserService {
         order: {
           providerId: 'DESC',
         },
-        select: ['password']
+        select: ['password'],
       });
 
       if (userPasswd.password) {
@@ -306,29 +307,25 @@ export class UserService {
     }
   }
 
-
-  async findPasswordByEmail(email: string, skip=true) {
-    let user: | User | ProviderAccount | null = null;
+  async findPasswordByEmail(email: string, skip = true) {
+    let user: User | ProviderAccount | null = null;
     try {
-      if(skip) {
+      if (skip) {
         user = await this.userRepository.findOne({
           where: {
             email,
             deletedAt: null,
           },
         });
-        await this.setTempPasswordAndSendTempPasswordByEmail(
-          user,
-          email,
-        );
+        await this.setTempPasswordAndSendTempPasswordByEmail(user, email);
       } else {
         user = await this.providerAccountRepository.findOne({
           where: {
             email,
-            deletedAt: null
-          }
-        })
-         await this.setTempPasswordAndSendTempPasswordByEmail(
+            deletedAt: null,
+          },
+        });
+        await this.setTempPasswordAndSendTempPasswordByEmail(
           user,
           email,
           false,
@@ -339,15 +336,18 @@ export class UserService {
     }
   }
 
-  async setTempPasswordAndSendTempPasswordByEmail( user: User | ProviderAccount, email, skip=true ) {
-
+  async setTempPasswordAndSendTempPasswordByEmail(
+    user: User | ProviderAccount,
+    email,
+    skip = true,
+  ) {
     if (!user) {
       throw new NotFoundException('USER_NOT_FOUND');
     }
 
     const tempPassword = cryptoRandomString({ length: 10 });
     const hashed = await this.hashPassword(tempPassword);
-    if(skip) {
+    if (skip) {
       await this.userRepository.save({
         ...user,
         password: hashed,
@@ -356,9 +356,8 @@ export class UserService {
       await this.providerAccountRepository.save({
         ...user,
         password: hashed,
-      })
+      });
     }
-
 
     if (email) {
       await this.emailService.sendEmail({
@@ -449,26 +448,47 @@ export class UserService {
     }
   }
 
-  async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
-    const { userId } = user;
+  async updateUser(
+    user: User | null,
+    updateUserDto: UpdateUserDto,
+    skip = true,
+    providerUser: ProviderAccount | null = null,
+  ): Promise<User | ProviderAccount> {
     try {
-      const findOneUser = await this.userRepository.findOne({
-        where: { userId }, //deletedAt: null
-      });
-      if (findOneUser) {
-        if (updateUserDto.phone) {
-          findOneUser.phone = updateUserDto.phone;
+      if (skip) {
+        const { userId } = user;
+        const findOneUser = await this.userRepository.findOne({
+          where: { userId }, //deletedAt: null
+        });
+        if (findOneUser) {
+          if (updateUserDto.phone) {
+            findOneUser.phone = updateUserDto.phone;
+          }
+          if (updateUserDto.password) {
+            const hashedPassword = await this.hashPassword(
+              updateUserDto.password,
+            );
+            findOneUser.password = hashedPassword;
+          }
+          return await this.userRepository.save(findOneUser);
         }
-        if (updateUserDto.password) {
-          const hashedPassword = await this.hashPassword(
-            updateUserDto.password,
-          );
-          findOneUser.password = hashedPassword;
-        }
-        return await this.userRepository.save(findOneUser);
+      } else {
+        const { providerId } = providerUser;
+        const findOneUser = await this.providerAccountRepository.findOne(
+          providerId,
+        );
+        const phone = updateUserDto.phone
+          ? updateUserDto.phone
+          : findOneUser.phone;
+        const password = updateUserDto.password
+          ? await this.hashPassword(updateUserDto.password)
+          : findOneUser.password;
+        return this.providerAccountRepository.save({
+          ...findOneUser,
+          phone,
+          password,
+        });
       }
-
-      throw new NotFoundException('NO_USER');
     } catch (err) {
       console.error(err);
       throw err;
@@ -539,16 +559,15 @@ export class UserService {
     }
   }
 
-  async findEmail(phone: string, skip=true): Promise<any> {
-
+  async findEmail(phone: string, skip = true): Promise<any> {
     let data: User | ProviderAccount | null = null;
 
-    if(skip) {
+    if (skip) {
       data = await this.userRepo.findEmail(phone);
     } else {
       data = await this.providerAccountRepository.findOne({
-        phone
-      })
+        phone,
+      });
     }
 
     let { email } = data;
@@ -560,38 +579,57 @@ export class UserService {
 
   async getInquiryForPerformance(me: User, id: number) {
     const { userId } = me;
-    const data: any = await this.userRepo.getInquiryForPerformance(userId, id);
+    const data: any = await this.buyerProductInfo.getInquiryForPerformance(
+      userId,
+      id,
+    );
 
     if (!data.length) {
       throw new Error('NO_EXIST_PRODUCT');
     }
-
-    data[0].product_plan = this.changeTypeOfProductDate(data[0].product_plan);
-    return data;
+    return data.map((ele) => {
+      ele.product_plan = this.changeTypeOfProductDate(ele.product_plan);
+      return ele;
+    });
   }
 
   async getInquiryForEducation(me: User, id: number) {
     const { userId } = me;
-    const data: any = await this.userRepo.getInquiryForEducation(userId, id);
+
+    const data: any = await this.buyerProductInfoForEdu.getInquiryForEducation(
+      userId,
+      id,
+    );
+
     if (!data.length) {
-      throw new Error('NO_EXIST_PRODUCT');
+      throw new BadRequestException('NO_EXIST_PRODUCT');
     }
-    console.log(data);
-    data[0].product_plan = this.changeTypeOfProductDate(data[0].product_plan);
-    return data;
+
+    return data.map((ele) => {
+      ele.product_plan = this.changeTypeOfProductDate(ele.product_plan);
+      return ele;
+    });
+
+    // data[0].product_plan = this.changeTypeOfProductDate(data[0].product_plan);
   }
 
   async withdrawAnInquiry(user: User, cate: string, id: number) {
     const { userId } = user;
 
     if (cate === 'performance') {
-      const productId = await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
+      const productId = await this.userRepo.withdrawAnInquiryForPerformance(
+        userId,
+        id,
+      );
       await this.buyerProductInfo.updateToCanceledForProgress(productId);
       return true;
     }
 
     if (cate === 'education') {
-      const productId = await this.userRepo.withdrawAnInquiryForEducation(userId, id);
+      const productId = await this.userRepo.withdrawAnInquiryForEducation(
+        userId,
+        id,
+      );
       await this.buyerProductInfoForEdu.updateToCanceledForProgress(productId);
       return true;
     }
@@ -604,11 +642,13 @@ export class UserService {
     id: number,
   ) {
     const { userId } = user;
-    const productId = await this.userRepo.withdrawAnInquiryForPerformance(userId, id);
+    const productId = await this.userRepo.withdrawAnInquiryForPerformance(
+      userId,
+      id,
+    );
     await this.buyerProductInfo.updateData(productId, updateProductDto);
     return true;
   }
-
 
   async updateAnInquiryForEducation(
     user: User,
@@ -616,7 +656,10 @@ export class UserService {
     id: number,
   ) {
     const { userId } = user;
-    const productId = await this.userRepo.withdrawAnInquiryForEducation(userId, id);
+    const productId = await this.userRepo.withdrawAnInquiryForEducation(
+      userId,
+      id,
+    );
     await this.buyerProductInfoForEdu.updateData(productId, updateProductDto);
     return true;
   }
@@ -624,5 +667,4 @@ export class UserService {
   changeTypeOfProductDate(date: string) {
     return JSON.parse(date);
   }
-
 }

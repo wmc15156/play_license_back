@@ -77,14 +77,14 @@ export class CreateProductDto {
   year: string;
 
   @ApiModelProperty({
-    example: { select: [{name: '대본', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}, {}, {}, {}] },
+    example: { select: [{name: '대본', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}] },
     description: '필수제공자료',
   })
   @IsNotEmpty()
   requiredMaterials: object; // // { select: [{}, {}, {}, {}]}
 
   @ApiModelProperty({
-    example: { select: [{name: '연습MR', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}, {}, {}, {}], input: '기타' },
+    example: { select: [{name: '연습MR', price: '123원', originalMaterial: 'url', agreement: 'url', etc: '비고사항'}], input: '기타' },
     description: '선택제공자료'
   })
   @IsNotEmpty()
@@ -147,11 +147,11 @@ export class CreateProductDto {
   castMembers: CastMembers;
 
   @ApiModelProperty({
-    example: { runningTime: '1시간 30분', intermission: '30분'}
+    example: { hour: '1', min: '30', intermission: '30분'}
   })
   @IsObject()
   @IsNotEmpty()
-  totalTime: object;
+  runningTime: object;
 
   @ApiModelProperty({
     example: '각색있음',
@@ -220,8 +220,8 @@ export class CreateProductDto {
   performanceInformationURL: string;
 
   @ApiModelProperty({
-    example: ['첫번째', '두번째', '세번째'],
-    description: '넘버리스트?',
+    example: ['첫번째', '두번째', '세번째'], // 1. , 2. , 3.
+    description: '셋 리스트',
   })
   @IsArray()
   @IsNotEmpty()

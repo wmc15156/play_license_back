@@ -3,11 +3,14 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpStatus,
-  Logger, Param,
+  Get,
+  HttpStatus,
+  Logger,
+  Param,
   Post,
   Req,
-  Res, UnauthorizedException,
+  Res,
+  UnauthorizedException,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -34,8 +37,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProviderAccount } from './entity/providerAccount.entity';
 import { Repository } from 'typeorm';
 import { DuplicateEmailDto } from './dto/duplicateEmail.dto';
-import { GetUser } from '../decorator/create-user.decorator';
-
+import { GetProviderUser, GetUser } from '../decorator/create-user.decorator';
 
 @ApiTags('auth(인증)')
 @Controller('auth')
@@ -131,14 +133,14 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'user not found' })
   async loginByProvider(
     @Body(ValidationPipe) loginDto: LoginDto,
-    @GetUser() user:ProviderAccount,
+    @GetUser() user: ProviderAccount,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     const jwt = await this.authService.createUserToken(
       user.providerId,
       AuthProviderEnum.LOCAL,
-      RoleEnum.PROVIDER
+      RoleEnum.PROVIDER,
     );
 
     const { createdAt, updatedAt, deletedAt, ...result } = user;
@@ -202,6 +204,16 @@ export class AuthController {
     }
   }
 
+  @Get('/provider/me')
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiOperation({ summary: '로그인 한 유저정보(provider 전용)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'success' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'token is invalid' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'user not found' })
+  async getMeByProvider(@GetProviderUser() user: ProviderAccount) {
+    return await this.authService.finProviderInformation(user);
+  }
+
   @Post('/logout')
   // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '사용자 로그아웃' })
@@ -255,7 +267,7 @@ export class AuthController {
       fullName,
       company,
       password,
-      phone
+      phone,
     );
   }
 
@@ -272,16 +284,16 @@ export class AuthController {
   }
 
   @Get('/check/login')
-  @ApiOperation({ summary: 'login 여부 확인'})
+  @ApiOperation({ summary: 'login 여부 확인' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
-  @ApiResponse( { status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
   async isLogin(@Res() res: Response) {
     return res.status(200).send(true);
   }
 
-  setUserTokenToCookie(res: Response, token: string, skip=true) {
-    let tokenName: | 'authtoken' | 'providerToken' | null = null;
+  setUserTokenToCookie(res: Response, token: string, skip = true) {
+    let tokenName: 'authtoken' | 'providerToken' | null = null;
     tokenName = skip ? 'authtoken' : 'providerToken';
     res.cookie(tokenName, token, {
       signed: true,
@@ -350,7 +362,9 @@ export class AuthController {
       });
 
       this.setOAuthTokenToCookie(res, oauthInfoToken);
-      return res.redirect(`${this.dotenvConfigService.get('URL')}/signup/sns?email=${user.email}`);
+      return res.redirect(
+        `${this.dotenvConfigService.get('URL')}/signup/sns?email=${user.email}`,
+      );
     }
   }
 }

@@ -13,7 +13,7 @@ export class CurationRepository extends Repository<CurationInfo> {
       .leftJoinAndSelect("curation.productInfo", "product")
       .select([
         "product.title",
-        "product.poster",
+        "product.posterURL",
         "curation.curationName",
         "curation.image",
         "product.productId",

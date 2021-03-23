@@ -2,10 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get, HttpStatus,
+  Get,
+  HttpStatus,
   Logger,
   NotFoundException,
-  Param, ParseIntPipe,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -25,18 +27,20 @@ import { FindByEmailQuery } from './queries/FindByPhone';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateUserDto } from '../auth/dto/updateUser.dto';
 import { User } from './entity/user.entity';
-import { GetUser } from '../decorator/create-user.decorator';
+import { GetProviderUser, GetUser } from '../decorator/create-user.decorator';
 import { ApiImplicitParam } from '@nestjs/swagger/dist/decorators/api-implicit-param.decorator';
 import { CreateProductByBuyerDto } from '../product/dto/createProductByBuyer.dto';
 import { CreateProductByUserForEducationalDto } from '../product/dto/createProductByUserForEducational.dto';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
+import { FilterProductDto } from '../product/dto/filterProduct.dto';
+import { FilterProductByEduDto } from '../product/dto/filterProductByEdu.dto';
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
-  constructor(private readonly userService: UserService) {
-  }
+  constructor(private readonly userService: UserService) {}
 
   @Post('/phone-validation/:phone')
   @ApiOperation({ summary: '휴대폰 번호 인증 문자 발송' })
@@ -116,9 +120,11 @@ export class UserController {
 
   @Get('/forgot-password/by-email/provider')
   @ApiOperation({ summary: '이메일로 패스워드 찾기(provider 전용)' })
-  async findCreatorPasswordByEmailOfProvider(@Query() { email }: FindByEmailQuery) {
+  async findCreatorPasswordByEmailOfProvider(
+    @Query() { email }: FindByEmailQuery,
+  ) {
     console.log('123');
-    await this.userService.findPasswordByEmail(email,false);
+    await this.userService.findPasswordByEmail(email, false);
   }
 
   @Patch('/update')
@@ -135,6 +141,27 @@ export class UserController {
     const user = req.user as User;
 
     const updatedUser = await this.userService.updateUser(user, updateUserDto);
+    return res.status(200).json({ success: true, data: updatedUser });
+  }
+
+  @Patch('/update/provider')
+  @ApiOperation({ summary: '유저 정보수정 Provider 정보 ' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'token is invalid' })
+  @ApiResponse({ status: 404, description: 'no user' })
+  @UseGuards(AuthGuard('jwtByProvider'))
+  async updateUserByProvider(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @GetProviderUser() user: ProviderAccount,
+  ) {
+    const updatedUser = await this.userService.updateUser(
+      null,
+      updateUserDto,
+      false,
+      user,
+    );
     return res.status(200).json({ success: true, data: updatedUser });
   }
 
@@ -159,7 +186,6 @@ export class UserController {
   @Get('/me')
   @ApiOperation({ summary: '로그인 여부' })
   @ApiResponse({ status: HttpStatus.OK })
-
   async me(@Req() req: Response, @Res() res: Response) {
     const isLogin = !!req['signedCookies']['authtoken'];
     return res.status(200).send(isLogin);
@@ -186,18 +212,26 @@ export class UserController {
   @Get('/inquiry/performance/:productId')
   @ApiOperation({ summary: '사용자 구매문의 내역 데이터(공연목적용)' })
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.OK, type: FilterProductDto })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
-  async getInquiryForPerformance(@GetUser() user: User, @Param('productId', ParseIntPipe) id: number) {
+  async getInquiryForPerformance(
+    @GetUser() user: User,
+    @Param('productId', ParseIntPipe) id: number,
+  ) {
     return await this.userService.getInquiryForPerformance(user, id);
   }
 
   @Get('/inquiry/education/:productId')
-  @ApiOperation({ summary: '사용자 구매문의 내역 데이터(공연목적용)' })
+  @ApiOperation({
+    summary: '사용자 구매문의 내역 데이터(교육목적용 및 기타목적용)',
+  })
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.OK, type: FilterProductByEduDto })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
-  async getInquiryForEducation(@GetUser() user: User, @Param('productId', ParseIntPipe) id: number) {
+  async getInquiryForEducation(
+    @GetUser() user: User,
+    @Param('productId', ParseIntPipe) id: number,
+  ) {
     return await this.userService.getInquiryForEducation(user, id);
   }
 
@@ -209,7 +243,7 @@ export class UserController {
   async withdrawAnInquiry(
     @GetUser() user: User,
     @Param('category') cate: string,
-    @Param('productId', ParseIntPipe) id: number
+    @Param('productId', ParseIntPipe) id: number,
   ) {
     return this.userService.withdrawAnInquiry(user, cate, id);
   }
@@ -222,24 +256,43 @@ export class UserController {
   async updateAnInquiryForPerformance(
     @GetUser() user: User,
     @Param('productId', ParseIntPipe) id: number,
-    @Body(ValidationPipe) updateProductDto: CreateProductByBuyerDto
+    @Body(ValidationPipe) updateProductDto: CreateProductByBuyerDto,
   ) {
-    return this.userService.updateAnInquiryForPerformance(user, updateProductDto, id);
+    return this.userService.updateAnInquiryForPerformance(
+      user,
+      updateProductDto,
+      id,
+    );
   }
 
   @Patch('/inquiry/education/:productId')
-  @ApiOperation({ summary: '사용자 구매문의 수정(교육목적용)' })
+  @ApiOperation({ summary: '사용자 구매문의 수정(교육목적용 및 기타목적용)' })
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async updateAnInquiryForEducation(
     @GetUser() user: User,
     @Param('productId', ParseIntPipe) id: number,
-    @Body(ValidationPipe) updateProductDto: CreateProductByUserForEducationalDto
+    @Body(ValidationPipe)
+    updateProductDto: CreateProductByUserForEducationalDto,
   ) {
-    return this.userService.updateAnInquiryForEducation(user, updateProductDto , id);
+    return this.userService.updateAnInquiryForEducation(
+      user,
+      updateProductDto,
+      id,
+    );
   }
 
-
+  @Get('/provider/me')
+  @ApiOperation({ summary: '구매자 사용자 정보 ' })
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+  async userInfoByProvider(
+    @GetProviderUser() user: ProviderAccount,
+    @Body(ValidationPipe)
+    updateProductDto: CreateProductByUserForEducationalDto,
+  ) {
+    return;
+  }
 }
-

@@ -4,12 +4,14 @@ import { QuestionService } from './question.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Question } from './entity/question.entity';
 import { User } from '../user/entity/user.entity';
+import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Question,
       User,
+      ProviderAccount
     ])
   ],
   controllers: [QuestionController],

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity';
 import { ProviderProductInfo } from '../../product/entity/ProductInfo.entity';
+import { ProviderAccount } from '../../auth/entity/providerAccount.entity';
 
 @Entity({
   name: 'questions'
@@ -67,5 +68,8 @@ export class Question {
   user: User;
 
   @ManyToOne((type) => ProviderProductInfo, (product) => product.questions)
-  product: ProviderProductInfo
+  product: ProviderProductInfo;
+
+  @ManyToOne((type) => ProviderAccount, (provider) => provider.questions)
+  provider: ProviderAccount;
 }
