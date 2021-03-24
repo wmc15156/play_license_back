@@ -284,7 +284,7 @@ export class ProductController {
 
   // 작품 정보 수정
   @Patch('/:productId')
-  @ApiOperation({ summary: '필수 제공 자료 수정 ' })
+  @ApiOperation({ summary: '작품 정보 수정' })
   @UseGuards(AuthGuard('jwtByProvider'))
   @ApiResponse({ status: HttpStatus.OK, description: 'success' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
