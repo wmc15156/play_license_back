@@ -22,7 +22,6 @@ export class ImageController {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Post('/poster')
-  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: '공연포스터 이미지 업로드 또는 pdf 파일 저장',
@@ -61,7 +60,6 @@ export class ImageController {
   }
 
   @Post('/mobile/background')
-  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: '모바일용 배경이미지 업로드',
@@ -92,7 +90,6 @@ export class ImageController {
   }
 
   @Post('/pc/background')
-  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'pc용 배경이미지 업로드',
