@@ -188,12 +188,12 @@ export class CreateProductDto {
   synopsis: string;
 
   @ApiModelProperty({
-    example: 'http://posterImageUrl.com',
+    example: { filename: "123.jpg", url: "url.com"},
     description: '공연포스터 이미지 url',
   })
   @IsString()
   @IsNotEmpty()
-  posterURL: string;
+  posterURL: object;
 
   @ApiModelProperty({
     example: 'http://pcBackground.com',

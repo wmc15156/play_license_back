@@ -4,7 +4,9 @@ import {
   DeleteDateColumn,
   Entity,
   JoinTable,
-  ManyToMany, ManyToOne, OneToMany,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -16,12 +18,11 @@ import { BuyerProductInfo } from './BuyerProductInfo.entity';
 import { BuyerProductInfoForEdu } from './BuyerProductInfoForEdu.entity';
 import { ProviderAccount } from '../../auth/entity/providerAccount.entity';
 
-
 export enum ProgressEnum {
   INPROGRESS = '관리자검토중',
   NEED_SUPPLEMENT = '보완요청',
   COMPLETED = '승인완료',
-  DELETED = '철회완료'
+  DELETED = '철회완료',
 }
 
 @Entity()
@@ -92,8 +93,8 @@ export class ProviderProductInfo {
   synopsis: string;
 
   //공연포스터
-  @Column()
-  posterURL: string;
+  @Column({ type: 'json' })
+  posterURL: object;
 
   //배경이미지 PC
   @Column()
@@ -125,7 +126,7 @@ export class ProviderProductInfo {
   creativeStaff_total: number;
 
   @Column({ type: 'json' })
-  totalTime: object
+  totalTime: object;
 
   @CreateDateColumn()
   createdAt: Date | string;
@@ -137,7 +138,7 @@ export class ProviderProductInfo {
   deletedAt: Date | string;
 
   @ManyToMany((type) => User, (user) => user.products, {
-    cascade: true
+    cascade: true,
   })
   @JoinTable({ name: 'user_product_cart' })
   users: User[];
@@ -145,17 +146,19 @@ export class ProviderProductInfo {
   @ManyToOne((type) => ProviderAccount, (provider) => provider.products)
   provider: ProviderAccount;
 
-  @ManyToMany((type) => CurationInfo, curation => curation.productInfo)
+  @ManyToMany((type) => CurationInfo, (curation) => curation.productInfo)
   @JoinTable({ name: 'curation_product' })
   curations: CurationInfo;
 
   @OneToMany((type) => Question, (question) => question.product)
-  questions: Question[]
+  questions: Question[];
 
   @OneToMany((type) => BuyerProductInfo, (buyerProduct) => buyerProduct.product)
-  buyerProducts: BuyerProductInfo[]
+  buyerProducts: BuyerProductInfo[];
 
-  @OneToMany((type) => BuyerProductInfoForEdu, (buyerProductForEdu) => buyerProductForEdu.product)
-  buyerProductForEducation: BuyerProductInfoForEdu[]
-
+  @OneToMany(
+    (type) => BuyerProductInfoForEdu,
+    (buyerProductForEdu) => buyerProductForEdu.product,
+  )
+  buyerProductForEducation: BuyerProductInfoForEdu[];
 }

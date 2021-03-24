@@ -145,7 +145,7 @@ export class UserController {
   }
 
   @Patch('/update/provider')
-  @ApiOperation({ summary: '유저 정보수정 Provider 정보 ' })
+  @ApiOperation({ summary: '유저 정보수정 Provider 정보(수정 할 정보만 전송, 모든정보 보내도 상관 없음)' })
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 401, description: 'token is invalid' })
   @ApiResponse({ status: 404, description: 'no user' })

@@ -483,10 +483,19 @@ export class UserService {
         const password = updateUserDto.password
           ? await this.hashPassword(updateUserDto.password)
           : findOneUser.password;
+        const avatar = updateUserDto.avatar
+          ? updateUserDto.avatar
+          : findOneUser.avatar;
+        const comment = updateUserDto.comment
+          ? updateUserDto.comment
+          : findOneUser.comment;
         return this.providerAccountRepository.save({
           ...findOneUser,
           phone,
           password,
+          avatar,
+          comment,
+          updatedAt: new Date(),
         });
       }
     } catch (err) {

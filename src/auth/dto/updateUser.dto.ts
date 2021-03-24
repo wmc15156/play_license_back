@@ -16,4 +16,18 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   password: string;
+
+  @ApiModelProperty({
+    example: 'www.avatar.com',
+  })
+  @IsOptional()
+  @IsString()
+  avatar: string;
+
+  @ApiModelProperty({
+    example: '설명',
+  })
+  @IsOptional()
+  @IsString()
+  comment: string;
 }

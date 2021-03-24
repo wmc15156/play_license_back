@@ -2,7 +2,8 @@ import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
-  Entity, OneToMany,
+  Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -27,7 +28,7 @@ export class ProviderAccount {
   password: string;
 
   @Column({
-    nullable: false
+    nullable: false,
   })
   phone: string;
 
@@ -41,6 +42,16 @@ export class ProviderAccount {
   })
   company: string;
 
+  @Column({
+    nullable: true,
+  })
+  avatar: string;
+
+  @Column({
+    nullable: true,
+  })
+  comment: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -51,8 +62,8 @@ export class ProviderAccount {
   deletedAt: Date;
 
   @OneToMany((type) => ProviderProductInfo, (product) => product.provider)
-  products: ProviderProductInfo[]
+  products: ProviderProductInfo[];
 
   @OneToMany((type) => Question, (question) => question.provider)
-  questions: Question[]
+  questions: Question[];
 }
