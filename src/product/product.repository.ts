@@ -107,7 +107,7 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
     return this.find({
       where: [
         {
-          creativeStaff_total: !isNaN(totalNumber)
+          castMembers_total: !isNaN(totalNumber)
             ? expression
               ? LessThan(totalNumber)
               : Not(LessThan(totalNumber))

@@ -97,10 +97,14 @@ export class ProviderProductInfo {
   posterURL: object;
 
   //배경이미지 PC
-  @Column()
+  @Column({
+    default: null,
+  })
   pcBackground: string;
 
-  @Column()
+  @Column({
+    default: null,
+  })
   mobileBackground: string;
 
   @Column()
@@ -123,7 +127,7 @@ export class ProviderProductInfo {
   views: number;
 
   @Column()
-  creativeStaff_total: number;
+  castMembers_total: number;
 
   @Column({ type: 'json' })
   totalTime: object;

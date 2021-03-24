@@ -196,22 +196,6 @@ export class CreateProductDto {
   posterURL: object;
 
   @ApiModelProperty({
-    example: 'http://pcBackground.com',
-    description: 'pc 배경이미지',
-  })
-  @IsString()
-  @IsNotEmpty()
-  pcBackground: string;
-
-  @ApiModelProperty({
-    example: 'http://mobileBackground.com',
-    description: 'mobile 배경이미지',
-  })
-  @IsString()
-  @IsNotEmpty()
-  mobileBackground: string;
-
-  @ApiModelProperty({
     example: 'http://performanceInformationURL.com',
     description: '공연정보 url',
   })
@@ -231,7 +215,7 @@ export class CreateProductDto {
     example: 7,
     description: '출연진 총 인원수'
   })
-  creativeStaff_total: number;
+  castMembers_total: number;
 
   @ApiModelProperty({
     example: true,
