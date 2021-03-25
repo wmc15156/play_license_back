@@ -191,7 +191,7 @@ export class CreateProductDto {
     example: { filename: "123.jpg", url: "url.com"},
     description: '공연포스터 이미지 url',
   })
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
   posterURL: object;
 

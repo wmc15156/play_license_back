@@ -160,7 +160,7 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
         progress: ProgressEnum.COMPLETED,
       })
       .select(
-        'product.title, product.poster, product.year, product.company, product.category, product.brokerageConsignment',
+        'product.title, product.posterURL, product.year, product.company, product.category, product.brokerageConsignment',
       )
       .execute();
     return data;
