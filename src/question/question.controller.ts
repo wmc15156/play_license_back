@@ -67,7 +67,7 @@ export class QuestionController {
   }
 
   @Get('/provider/:questionId')
-  @ApiOperation({ summary: '1:1문의 내역 ' })
+  @ApiOperation({ summary: '1:1문의 내역(provider 전용)' })
   @UseGuards(AuthGuard('jwtByProvider'))
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
