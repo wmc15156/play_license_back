@@ -37,7 +37,7 @@ export class QuestionController {
 
   @Post('/provider')
   @ApiOperation({ summary: '1대1문의 작성(provider 전용)' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwtByProvider'))
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
   createdQuestionByProvider(
@@ -81,7 +81,7 @@ export class QuestionController {
 
   @Patch('/provider/:questionId')
   @UseGuards(AuthGuard('jwtByProvider'))
-  @ApiOperation({ summary: '1:1 문의내역수정'})
+  @ApiOperation({ summary: '1:1 문의내역수정(provider)'})
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
   async modifyQuestionByProvider(
