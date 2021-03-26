@@ -18,7 +18,8 @@ export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvid
       secretOrKey: dotenvConfigService.get('JWT_SECRET_KEY'),
       jwtFromRequest: (req: Request) => {
         let token = null;
-        if (req && req.signedCookies) {
+        if (req.signedCookies && req.signedCookies['providerToken']) {
+          console.log(12313123,req.signedCookies);
           token = req.signedCookies['providerToken']
         }
         return token;
@@ -28,6 +29,7 @@ export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvid
 
   async validate(payload: any, done: (err: any, payload: any) => void) {
     try {
+      console.log(payload);
       const { userId, role } = payload;
       const user = await this.userService.findOneByUserId(userId, false);
 

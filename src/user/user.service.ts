@@ -277,7 +277,7 @@ export class UserService {
           email,
         },
       });
-
+      console.log(user);
       if (!user) {
         throw new NotFoundException('USER_NOT_FOUND');
       }
@@ -435,10 +435,10 @@ export class UserService {
     const { userId } = user;
     try {
       const findOneUser = await this.userRepository.findOne({
-        where: { userId }, //deletedAt: null
+        where: { userId, deletedAt: null },
       });
       if (findOneUser) {
-        // findOneUser.deletedAt = new Date();
+        findOneUser.deletedAt = new Date();
         await this.userRepository.save(findOneUser);
       } else {
         throw new NotFoundException('NO_USER');
@@ -446,6 +446,23 @@ export class UserService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async unregisterByProvider(user: ProviderAccount): Promise<void> {
+    const { providerId } = user;
+    const findOneUser = await this.providerAccountRepository.findOne({
+      where: {
+        providerId,
+        deletedAt: null,
+      },
+    });
+    if (findOneUser) {
+      findOneUser.deletedAt = new Date();
+      await this.providerAccountRepository.save(findOneUser);
+    } else {
+      throw new NotFoundException('NO USER');
+    }
+
   }
 
   async updateUser(

@@ -31,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     try {
       const { userId, role } = payload;
       const user = await this.userService.findOneByUserId(userId);
-
+      console.log(123,user);
       this.logger.debug(
         'usertoken validated: ' + JSON.stringify(user, null, 2),
       );

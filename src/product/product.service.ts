@@ -25,7 +25,7 @@ import { BuyerInfo } from './type/typed';
 import * as _ from 'lodash';
 import { ProviderAccount } from '../auth/entity/providerAccount.entity';
 import changeDateFormat from '../utils/chagneDate';
-import { convertToArray } from '../utils/chageDataType';
+import { convertToArray, removeTextObjective } from '../utils/chageDataType';
 import { UpdateRequirementsDto } from './dto/updateRequirements.dto';
 import { UpdateSelectsDto } from './dto/updateSelects.dto';
 
@@ -416,14 +416,16 @@ export class ProductService {
   }
 
   async getProduct(id: number): Promise<any> {
-    const product: ProviderProduct = await this.productRepo.getProduct(id);
+    const product: any = await this.productRepo.getProduct(id);
     const { updatedAt, deletedAt, ...result } = product;
     result.brokerageConsignments = result.brokerageConsignment.split(',');
+    result.brokerageConsignment = removeTextObjective(
+      result.brokerageConsignment,
+    );
     result.brokerageConsignments = result.brokerageConsignments.map((cate) => {
       return cate.replace('목적', '');
     });
-    const { brokerageConsignment, ...results } = result;
-    return results;
+    return result;
   }
 
   async filterSelectData(data: string): Promise<any> {
@@ -503,21 +505,16 @@ export class ProductService {
   }
 
   // 필수 제공 자료 업데이트
-  async modifyMaterials(
-    updateData: UpdateRequirementsDto,
-    id: number,
-  ) {
-
+  async modifyMaterials(updateData: UpdateRequirementsDto, id: number) {
     return await this.productRepo.modifyMaterials(updateData, id);
   }
   // 선택 제공 자료 수정
   async modifySelectMaterial(updateData: UpdateSelectsDto, id) {
-    return this.productRepo.modifySelectMaterial(updateData, id)
+    return this.productRepo.modifySelectMaterial(updateData, id);
   }
 
   // 모든 데이터 수정
   async modifyProductData(productData: CreateProductDto, id) {
     return this.productRepo.modifyProductData(productData, id);
   }
-
 }

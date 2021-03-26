@@ -110,8 +110,6 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const user = req.user as User;
-    console.log(user);
-
     const jwt = await this.authService.createUserToken(
       user.userId,
       AuthProviderEnum.LOCAL,
@@ -208,19 +206,33 @@ export class AuthController {
   @UseGuards(AuthGuard('jwtByProvider'))
   @ApiOperation({ summary: '로그인 한 유저정보(provider 전용)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'success' })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'token is invalid' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'user not found' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'token is invalid',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'user not found',
+  })
   async getMeByProvider(@GetProviderUser() user: ProviderAccount) {
     return await this.authService.finProviderInformation(user);
   }
 
   @Post('/logout')
-  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '사용자 로그아웃' })
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized user' })
   async logout(@Res() res: Response) {
     res.clearCookie('authtoken');
+    return res.status(200).send();
+  }
+
+  @Post('/provider/logout')
+  @ApiOperation({ summary: '사용자 로그아웃(provider 전용)' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized user' })
+  async logoutByProvider(@Res() res: Response) {
+    res.clearCookie('providerToken');
     return res.status(200).send();
   }
 
@@ -232,9 +244,23 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'no user' })
   async unregister(@Req() req: Request, @Res() res: Response) {
     const user = req.user as User;
-
     await this.userService.unregister(user);
     res.clearCookie('authtoken');
+    return res.status(200).json({ success: true });
+  }
+
+  @Delete('/provider/unregister')
+  @UseGuards(AuthGuard('jwtByProvider'))
+  @ApiOperation({ summary: '회원탈퇴(provider)' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized user' })
+  @ApiResponse({ status: 404, description: 'no user' })
+  async unregisterByProvider(
+    @GetProviderUser() user: ProviderAccount,
+    @Res() res: Response,
+  ) {
+    await this.userService.unregisterByProvider(user);
+    res.clearCookie('providerToken');
     return res.status(200).json({ success: true });
   }
 
@@ -253,8 +279,8 @@ export class AuthController {
 
   @Post('/give/authority')
   @ApiOperation({ summary: 'provider 계정 등록' })
-  @Roles(RoleEnum.ADMIN)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @Roles(RoleEnum.ADMIN)
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiResponse({ status: 201, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized' })
   @ApiResponse({ status: 409, description: 'duplicated email' })
