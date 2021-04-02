@@ -16,6 +16,7 @@ import { ImageModule } from './image/image.module';
 import { ProductModule } from './product/product.module';
 import { CurationModule } from './curation/curation.module';
 import { QuestionModule } from './question/question.module';
+import { AdminModule } from './admin/admin.module';
 
 const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
 
@@ -37,6 +38,7 @@ const ENV = process.env.NODE_ENV ? 'production.env' : 'development.env';
     ProductModule,
     CurationModule,
     QuestionModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

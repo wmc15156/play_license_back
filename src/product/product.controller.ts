@@ -248,10 +248,12 @@ export class ProductController {
     @Query('page', ParseIntPipe) page: number,
     @Res() res: Response,
   ) {
+    console.log('search', query);
     const product = await this.productService.searchProduct(query, page);
     if (product.length === 0) {
       return res.status(200).json([]);
     }
+    console.log(product);
     const result = await this.productService.convertProductsData(product);
     return res.status(200).json(result);
   }
@@ -266,7 +268,7 @@ export class ProductController {
     @Body(ValidationPipe) updateRequirements: UpdateRequirementsDto,
     @Param('productId', ParseIntPipe) id: number,
   ) {
-    return this.productService.modifyMaterials(updateRequirements, id)
+    return this.productService.modifyMaterials(updateRequirements, id);
   }
 
   @Patch('/selectMaterial/:productId')
@@ -279,7 +281,7 @@ export class ProductController {
     @Body(ValidationPipe) updateSelects: UpdateSelectsDto,
     @Param('productId', ParseIntPipe) id: number,
   ) {
-    return this.productService.modifySelectMaterial(updateSelects, id)
+    return this.productService.modifySelectMaterial(updateSelects, id);
   }
 
   // 작품 정보 수정
@@ -293,6 +295,6 @@ export class ProductController {
     @Body(ValidationPipe) updateProductData: CreateProductDto,
     @Param('productId', ParseIntPipe) id: number,
   ) {
-    return this.productService.modifyProductData(updateProductData, id)
+    return this.productService.modifyProductData(updateProductData, id);
   }
 }

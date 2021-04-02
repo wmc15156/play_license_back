@@ -7,8 +7,11 @@ import { DotenvService } from '../../dotenv/dotenv.service';
 import { UserService } from '../../user/user.service';
 
 @Injectable()
-export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvider') {
-  private readonly logger = new Logger(JwtProviderStrategy.name);
+export class JwtAdminStrategy extends PassportStrategy(
+  Strategy,
+  'jwtByAdmin',
+) {
+  private readonly logger = new Logger(JwtAdminStrategy.name);
 
   constructor(
     private readonly dotenvConfigService: DotenvService,
@@ -18,8 +21,8 @@ export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvid
       secretOrKey: dotenvConfigService.get('JWT_SECRET_KEY'),
       jwtFromRequest: (req: Request) => {
         let token = null;
-        if (req.signedCookies && req.signedCookies['providerToken']) {
-          token = req.signedCookies['providerToken']
+        if (req.signedCookies && req.signedCookies['adminToken']) {
+          token = req.signedCookies['adminToken'];
         }
         return token;
       },
@@ -28,11 +31,11 @@ export class JwtProviderStrategy extends PassportStrategy(Strategy, 'jwtByProvid
 
   async validate(payload: any, done: (err: any, payload: any) => void) {
     try {
-      const { userId, role } = payload;
-      const user = await this.userService.findOneByUserId(userId, false);
+      const { adminId, role } = payload;
+      const user = await this.userService.findOneByAdminId(adminId);
 
       this.logger.debug(
-        'usertoken validated: ' + JSON.stringify(user, null, 2),
+        'adminToken validated: ' + JSON.stringify(user, null, 2),
       );
       done(null, user);
     } catch (e) {

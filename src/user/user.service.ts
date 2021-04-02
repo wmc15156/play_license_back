@@ -32,6 +32,7 @@ import { BuyerProductInfoRepository } from '../product/buyerProductInfo.reposito
 import { BuyerProductInfoForEduRepository } from '../product/buyerProductInfoForEdu.repository';
 import { CreateProductByBuyerDto } from '../product/dto/createProductByBuyer.dto';
 import { CreateProductByUserForEducationalDto } from '../product/dto/createProductByUserForEducational.dto';
+import { AdminAccountEntity } from '../admin/entity/adminAccount.entity';
 
 @Injectable()
 export class UserService {
@@ -50,6 +51,8 @@ export class UserService {
     private readonly buyerProductInfo: BuyerProductInfoRepository,
     @InjectRepository(BuyerProductInfoForEduRepository)
     private readonly buyerProductInfoForEdu: BuyerProductInfoForEduRepository,
+    @InjectRepository(AdminAccountEntity)
+    private readonly adminAccountRepository: Repository<AdminAccountEntity>,
 
     private readonly dotEnvConfigService: DotenvService,
     private readonly roleService: RolesService,
@@ -229,6 +232,20 @@ export class UserService {
     return user;
   }
 
+  async findOneByAdminId(
+    adminId: number,
+  ) {
+    const adminUser = await this.adminAccountRepository.findOne({
+      where: {
+        adminId,
+        deletedAt: null,
+      }
+    });
+
+    return adminUser;
+
+  }
+
   async findOneWithPrivateInfo(email: string): Promise<User> {
     try {
       const user = await this.userRepository.findOne({
@@ -270,13 +287,24 @@ export class UserService {
     }
   }
 
-  async findOneWithProviderInfo(email: string): Promise<any> {
+  async findOneWithInfo(email: string, provider = true): Promise<any> {
     try {
-      const user = await this.providerAccountRepository.findOne({
-        where: {
-          email,
-        },
-      });
+      let user: ProviderAccount | AdminAccountEntity | null = null;
+      let userPasswd: ProviderAccount | AdminAccountEntity | null = null;
+      if (provider) {
+        user = await this.providerAccountRepository.findOne({
+          where: {
+            email,
+          },
+        });
+      } else {
+        user = await this.adminAccountRepository.findOne({
+          where: {
+            email,
+          },
+        });
+      }
+
       console.log(user);
       if (!user) {
         throw new NotFoundException('USER_NOT_FOUND');
@@ -286,20 +314,26 @@ export class UserService {
         throw new BadRequestException('DELETED_USER');
       }
 
-      const userPasswd = await this.providerAccountRepository.findOne({
-        where: {
-          email,
-        },
-        order: {
-          providerId: 'DESC',
-        },
-        select: ['password'],
-      });
+      if (provider) {
+        userPasswd = await this.providerAccountRepository.findOne({
+          where: {
+            email,
+          },
+          select: ['password'],
+        });
+      } else {
+        userPasswd = await this.adminAccountRepository.findOne({
+          where: {
+            email,
+          },
+          select: ['password'],
+        });
+      }
 
       if (userPasswd.password) {
         user.password = userPasswd.password;
       }
-
+      console.log(user);
       return user;
     } catch (err) {
       console.error(err);
@@ -462,7 +496,6 @@ export class UserService {
     } else {
       throw new NotFoundException('NO USER');
     }
-
   }
 
   async updateUser(

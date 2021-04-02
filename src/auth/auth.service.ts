@@ -46,7 +46,6 @@ export class AuthService {
 
   async signUp(createUserDto: CreateUserDto, oauthId?: string) {
     const { provider } = createUserDto;
-    console.log(createUserDto, oauthId);
     try {
       // if (provider !== AuthProviderEnum.LOCAL && !provider) {
       //   throw new BadRequestException('MISSING_PROVIDER');
@@ -118,7 +117,6 @@ export class AuthService {
       payload = { userId, provider };
     }
 
-    console.log(payload);
 
     const jwt: string = sign(
       payload,
@@ -158,8 +156,29 @@ export class AuthService {
     email: string;
     password: string;
   }) {
-    const user = await this.userService.findOneWithProviderInfo(email);
+    const user = await this.userService.findOneWithInfo(email);
 
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException('OAUTH_SIGNUP');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (isMatch) {
+      const { password: userPasswd, ...result } = user;
+      // 패스워드를 제외한 나머지 데이터 return
+      return result;
+    } else {
+      throw new BadRequestException('WRONG_PASSWORD');
+    }
+  }
+
+  async ValidateAdminUser(email, password) {
+    const user = await this.userService.findOneWithInfo(email, false);
+    console.log(user)
     if (!user) {
       throw new NotFoundException('USER_NOT_FOUND');
     }

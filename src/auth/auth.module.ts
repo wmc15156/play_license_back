@@ -19,6 +19,8 @@ import { User } from '../user/entity/user.entity';
 import { ProviderAccount } from './entity/providerAccount.entity';
 import { ProviderLocalStrategy } from './strategies/provider.local.strategy';
 import { JwtProviderStrategy } from './strategies/jwt.provider.strategy';
+import { AdminLocalStrategy } from './strategies/admin.local.strategy';
+import { JwtAdminStrategy } from './strategies/jwt.admin.strategy';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { JwtProviderStrategy } from './strategies/jwt.provider.strategy';
     JwtOauthStrategy,
     ProviderLocalStrategy,
     JwtProviderStrategy,
+    AdminLocalStrategy,
+    JwtAdminStrategy,
   ],
   exports: [AuthService],
 })

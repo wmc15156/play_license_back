@@ -289,6 +289,7 @@ export class ProductService {
       return [];
     }
     try {
+
       const findProduct = await this.productRepository
         .createQueryBuilder('product')
         .where('product.title like :title', { title: `%${query}%` })
