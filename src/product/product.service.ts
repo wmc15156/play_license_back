@@ -386,12 +386,16 @@ export class ProductService {
           }
         }),
       );
+
       const result = _.flatten(data);
 
       return result.map((product) => {
-        const { updatedAt, deletedAt, ...result } = product;
-        result.createdAt = moment(result.createdAt).format('YYYY-MM-DD');
-        return result;
+        console.log(product);
+        if (product) {
+          console.log(product);
+          product.createdAt = moment(product.createdAt).format('YYYY-MM-DD');
+          return product;
+        }
       });
     } catch (err) {
       console.error(err);

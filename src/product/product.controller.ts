@@ -193,6 +193,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 400, description: 'bad request' })
   async getBuyerInquiryDetails(@GetUser() user: User, @Res() res: Response) {
+    console.log('here');
     const products = await this.productService.getBuyerInquiryDetails(user);
     return res.status(200).json(products);
   }

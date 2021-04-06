@@ -29,6 +29,7 @@ export class UserRepo extends Repository<User> {
   }
 
   async getBuyerInquiryDetails(userId: number) {
+     console.log("here2222");
     const buyerInfo =  await this.createQueryBuilder('user')
       .leftJoinAndSelect('user.buyerProductInfo', 'buyerInfo')
       .where('user.userId = :userId', { userId })
