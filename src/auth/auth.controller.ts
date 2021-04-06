@@ -223,7 +223,14 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'success' })
   @ApiResponse({ status: 401, description: 'unauthorized user' })
   async logout(@Res() res: Response) {
-    res.clearCookie('authtoken');
+    res.clearCookie('authtoken', {
+      secure: true,
+      sameSite: 'none',
+    });
+    res.clearCookie('Oauthtoken', {
+      secure: true,
+      sameSite: 'none',
+    });
     return res.status(200).send();
   }
 
@@ -325,8 +332,8 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 
@@ -335,14 +342,14 @@ export class AuthController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
 
   async handleOAuthCallback(req: Request, res: Response) {
     const user = req.user as any;
-
+    console.log(user, 'user');
     // User with the email has been already deleted.
     if (user.isDeleted) {
       return res.send(

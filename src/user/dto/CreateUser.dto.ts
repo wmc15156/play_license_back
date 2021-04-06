@@ -55,14 +55,13 @@ export class CreateUserDto {
     example: '01028100744',
     description: '숫자로만 이루어진 문자열',
   })
-  @IsNotEmpty()
-  @IsNumberString()
+  @IsOptional()
   readonly phone: string;
 
   @ApiModelProperty({
     example: 'provider or user',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   role: RolesEnum;
 

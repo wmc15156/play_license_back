@@ -1,8 +1,14 @@
 import {
   Body,
-  Controller, Delete, Get,
-  HttpStatus, Param, ParseIntPipe, Patch,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
+  Req,
   Res,
   UseGuards,
   ValidationPipe,
@@ -39,7 +45,6 @@ export class AdminController {
     return res.status(200).send(true);
   }
 
-
   @Post('/signup')
   @ApiOperation({ summary: 'admin 회원가입 ' })
   @ApiResponse({ status: 201, description: 'success' })
@@ -49,16 +54,16 @@ export class AdminController {
   }
 
   @Get('/home-banner')
-  // @UseGuards(AuthGuard('jwtByAdmin'))
+  @UseGuards(AuthGuard('jwtByAdmin'))
   @ApiOperation({ summary: 'banner List 정보' })
-  @ApiResponse({ status: HttpStatus.OK, type: GetBannerListsDto})
+  @ApiResponse({ status: HttpStatus.OK, type: GetBannerListsDto })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async getBannerList() {
     return this.adminService.getBannerList();
   }
 
   @Post('/home-banner')
-  // @UseGuards(AuthGuard('jwtByAdmin'))
+  @UseGuards(AuthGuard('jwtByAdmin'))
   @ApiOperation({ summary: 'admin 홈 배너 리스트 추가 ' })
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
@@ -84,30 +89,45 @@ export class AdminController {
 
   //내용수정
   @Patch('/home-banner/:bannerId')
-  // @UseGuards(AuthGuard('jwtByAdmin'))
+  @UseGuards(AuthGuard('jwtByAdmin'))
   @ApiOperation({ summary: 'admin 홈 배너 리스트 내용 수정 ' })
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
   async updateBanner(
     @Param('bannerId', ParseIntPipe) id: number,
-    @Body(ValidationPipe) bannerDto: CreateBannerDto
+    @Body(ValidationPipe) bannerDto: CreateBannerDto,
   ) {
     return await this.adminService.updateBanner(id, bannerDto);
   }
 
   @Delete('/home-banner/:bannerId')
-  // @UseGuards(AuthGuard('jwtByAdmin'))
+  @UseGuards(AuthGuard('jwtByAdmin'))
   @ApiOperation({ summary: 'admin 홈 배너 리스트 삭제 ' })
   @ApiResponse({ status: HttpStatus.CREATED })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST })
-  async deleteBanner(
-    @Param('bannerId', ParseIntPipe) id: number,
-  ) {
+  async deleteBanner(@Param('bannerId', ParseIntPipe) id: number) {
     return await this.adminService.deleteBanner(id);
   }
 
+  @Get('/me')
+  @ApiOperation({ summary: '로그인 여부(admin)' })
+  @ApiResponse({ status: HttpStatus.OK })
+  async providerLogin(@Req() req: Response, @Res() res: Response) {
+    const isLogin = !!req['signedCookies']['adminToken'];
+    return res.status(200).send(isLogin);
+  }
 
-
+  @Post('/logout')
+  @ApiOperation({ summary: '사용자 로그아웃' })
+  @ApiResponse({ status: 200, description: 'success' })
+  @ApiResponse({ status: 401, description: 'unauthorized user' })
+  async logout(@Res() res: Response) {
+    res.clearCookie('adminToken', {
+      secure: true,
+      sameSite: 'none',
+    });
+    return res.status(200).send();
+  }
 
   setUserTokenToCookie(res: Response, token: string) {
     let tokenName = 'adminToken';
@@ -115,10 +135,8 @@ export class AdminController {
       signed: true,
       maxAge: 60 * 60 * 24 * 10000,
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
+      secure: true,
+      sameSite: 'none',
     });
   }
-
-
 }

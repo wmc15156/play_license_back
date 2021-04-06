@@ -123,7 +123,6 @@ export class UserController {
   async findCreatorPasswordByEmailOfProvider(
     @Query() { email }: FindByEmailQuery,
   ) {
-    console.log('123');
     await this.userService.findPasswordByEmail(email, false);
   }
 

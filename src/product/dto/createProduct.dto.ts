@@ -67,7 +67,7 @@ export class CreateProductDto {
   })
   @IsArray()
   @IsNotEmpty()
-  brokerageConsignment: string[];
+  brokerageConsignments: string[];
 
   @ApiModelProperty({
     example: '2020년',

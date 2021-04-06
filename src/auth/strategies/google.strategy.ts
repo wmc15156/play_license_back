@@ -65,6 +65,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
       if (error.message === 'NO_EMAIL') {
         done(null, { noEmail: true });
+        console.log(123);
         return;
       }
 

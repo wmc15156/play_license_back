@@ -117,7 +117,6 @@ export class AuthService {
       payload = { userId, provider };
     }
 
-
     const jwt: string = sign(
       payload,
       this.dotEnvConfigService.get('JWT_SECRET_KEY'),
@@ -178,7 +177,7 @@ export class AuthService {
 
   async ValidateAdminUser(email, password) {
     const user = await this.userService.findOneWithInfo(email, false);
-    console.log(user)
+    console.log(user);
     if (!user) {
       throw new NotFoundException('USER_NOT_FOUND');
     }
@@ -323,11 +322,11 @@ export class AuthService {
           relations: ['user'],
         },
       );
+      console.log(loginInfo, loginInfoWithUser, 'loginInfo');
 
       try {
         const foundUser = await this.userService.findOneByUserId(
           loginInfoWithUser.user.userId,
-          false,
         );
         return foundUser;
       } catch (error) {

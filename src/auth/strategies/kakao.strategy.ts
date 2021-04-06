@@ -15,7 +15,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
   ) {
     super({
       clientID: dotenvConfigService.get('KAKAO_CLIENT_ID'),
-      callbackURL: `${dotenvConfigService.get('CALLBACKURL')}/api/auth/kakao/callback`,
+      callbackURL: `${dotenvConfigService.get('KAKAO_CALLBACKURL')}`,
     });
   }
 

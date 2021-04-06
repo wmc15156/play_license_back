@@ -197,7 +197,7 @@ export class ProductRepository extends Repository<ProviderProductInfo> {
     return this.save({
       ...product,
       ...createProductDto,
-      brokerageConsignment: createProductDto.brokerageConsignment.join(','),
+      brokerageConsignment: createProductDto.brokerageConsignments.join(','),
       genre: JSON.stringify(createProductDto.genre),
       mainAudience: JSON.stringify(createProductDto.mainAudience),
       numberList: JSON.stringify(createProductDto.numberList),

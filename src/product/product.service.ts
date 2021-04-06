@@ -78,14 +78,14 @@ export class ProductService {
       // createProductDto.selectMaterials.forEach((item) => {
       //   addPriceToVar[item] = '0원';
       // });
-
+      console.log('213123123', createProductDto);
       const created = await this.productRepository.save({
         title: createProductDto.title,
         company: createProductDto.company,
         description: createProductDto.description,
         name: createProductDto.name,
         phone: createProductDto.phone,
-        brokerageConsignment: createProductDto.brokerageConsignment.join(','),
+        brokerageConsignment: createProductDto.brokerageConsignments.join(','),
         requiredMaterials: createProductDto.requiredMaterials,
         selectMaterials: createProductDto.selectMaterials,
         comment: createProductDto.comment,
@@ -289,7 +289,6 @@ export class ProductService {
       return [];
     }
     try {
-
       const findProduct = await this.productRepository
         .createQueryBuilder('product')
         .where('product.title like :title', { title: `%${query}%` })
